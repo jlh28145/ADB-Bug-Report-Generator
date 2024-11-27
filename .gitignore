@@ -1,0 +1,40 @@
+# Byte-compiled Python files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment-specific files
+.env
+*.env
+venv/
+venv*/  # Any virtual environment directories
+*.DS_Store  # macOS specific files
+Thumbs.db  # Windows specific files
+
+# Log and report files
+incident_reports/
+*.log
+*.zip
+
+# System files
+.idea/  # IDE files (e.g., JetBrains IDEs)
+.vscode/  # VSCode settings
+*.swp
+*.swo
+*.bak
+
+# Python package files
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.~lock.*
+~$*
+
+# Debugging artifacts
+debug.log
