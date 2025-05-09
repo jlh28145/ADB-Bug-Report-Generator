@@ -7,6 +7,7 @@ from datetime import datetime
 import argparse
 import re
 import sys
+import shutil
 
 # Define file and directory paths on the ADB device
 directories_to_pull = [
@@ -249,3 +250,10 @@ if __name__ == "__main__":
     metadata = f"Incident Summary: {user_summary}\nTimestamp: {timestamp}\nDevice: {selected_device}"
     zip_file_name = os.path.join(incident_dir, f"QA_bug_report_{timestamp}.zip")
     create_zip(report_dir, zip_file_name, metadata)
+    
+    # Step 7: Clean up the extracted report directory
+    try:
+        shutil.rmtree(report_dir)
+        print(f"Cleaned up temporary folder: {report_dir}")
+    except Exception as e:
+        print(f"Failed to delete temporary folder: {e}")
