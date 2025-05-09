@@ -151,7 +151,8 @@ def collect_logs(device):
         "logcat": "logcat -d",
         "device_info": "shell getprop",
         #ToDo - Add a check for both org.mavlink.qgroundcontrol and ai.pdw.gcs
-        "meminfo": "shell dumpsys meminfo ai.pdw.gcs",
+        "meminfo_pdw_gcs": "shell dumpsys meminfo ai.pdw.gcs",
+        "meminfo_qgroundcontrol": "shell dumpsys meminfo org.mavlink.qgroundcontrol",
         "cpu_usage": "shell top -n 1",
         "network_stats": "shell dumpsys netstats",
         "network_config": "shell ifconfig",
