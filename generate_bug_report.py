@@ -89,11 +89,13 @@ def pull_directory(directory, dest_dir, device):
     # List all top-level files and folders in the directory
     command = f'shell "ls -p {directory}"'
     items = run_adb_command(command, device=device)
-    
+      
     if items:
         for item in items.splitlines():
             if ".thumbnails" in item:
                 continue  # Skip .thumbnails
+            if directory == "/sdcard/Movies" and item.startswith("screen-"):
+                continue  # Skip screen recordings
             item_path = os.path.join(directory, item.rstrip("/"))
             try:
                 subprocess.run(["adb", "-s", device, "pull", item_path, local_dir], check=True)
