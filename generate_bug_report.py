@@ -135,7 +135,7 @@ def collect_logs(device):
     log_types = {
         "logcat": "logcat -d",
         "device_info": "shell getprop",
-        "meminfo": "shell dumpsys meminfo org.mavlink.qgroundcontrol",
+        "meminfo": "shell dumpsys meminfo ai.pdw.gcs",
         "cpu_usage": "shell top -n 1",
         "network_stats": "shell dumpsys netstats",
         "network_config": "shell ifconfig",
