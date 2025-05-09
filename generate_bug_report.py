@@ -83,14 +83,27 @@ def run_adb_command(command, device=None):
         return None
 
 def pull_directory(directory, dest_dir, device):
-    """Pull a complete directory from the ADB device."""
+    """Pull files and subdirectories from the ADB device, excluding .thumbnails."""
     local_dir = os.path.join(dest_dir, os.path.basename(directory))
     os.makedirs(local_dir, exist_ok=True)
-    try:
-        subprocess.run(["adb", "-s", device, "pull", directory, local_dir], check=True)
-        print(f"Pulled directory {directory} to {local_dir}")
-    except subprocess.CalledProcessError:
-        print(f"Failed to pull directory {directory}")
+
+    # List all top-level files and folders in the directory
+    command = f'shell "ls -p {directory}"'
+    items = run_adb_command(command, device=device)
+    
+    if items:
+        for item in items.splitlines():
+            if ".thumbnails" in item:
+                continue  # Skip .thumbnails
+            item_path = os.path.join(directory, item.rstrip("/"))
+            try:
+                subprocess.run(["adb", "-s", device, "pull", item_path, local_dir], check=True)
+                print(f"Pulled {item_path} to {local_dir}")
+            except subprocess.CalledProcessError:
+                print(f"Failed to pull {item_path}")
+    else:
+        print(f"No items found in {directory}")
+
 
 def pull_recent_files(directory, ls_command, dest_dir, num_files, device):
     """Pull the most recent files from a specific directory."""
