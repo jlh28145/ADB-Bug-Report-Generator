@@ -205,7 +205,7 @@ if __name__ == "__main__":
     print(f"Selected device: {selected_device}")
 
     parser = argparse.ArgumentParser(description="Generate an incident report from an Android device.")
-    parser.add_argument("-n", "--num_recent_files", type=int, default=5, help="Number of recent files to pull (default: 1)")
+    parser.add_argument("-n", "--num_recent_files", type=int, default=5, help="Number of recent files to pull (default: 5)")
     parser.add_argument("-s", "--simplified", action="store_true", help="Generate a simplified report (without directories and bug report)")
     args = parser.parse_args()
 
