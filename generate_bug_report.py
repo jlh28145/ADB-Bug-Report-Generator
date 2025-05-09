@@ -195,7 +195,7 @@ def create_zip(source_dir, output_filename, metadata):
         metadata_path = os.path.join(source_dir, "metadata.txt")
         with open(metadata_path, "w") as meta_file:
             meta_file.write(metadata)
-        zipf.write(metadata_path, "metadata.txt")
+        zipf.write(metadata_path, "user_report.txt")
     print(f"Incident report created: {output_filename}")
 
 # Main execution
