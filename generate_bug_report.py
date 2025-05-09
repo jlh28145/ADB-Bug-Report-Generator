@@ -11,8 +11,7 @@ import sys
 # Define file and directory paths on the ADB device
 directories_to_pull = [
     "/sdcard/Pictures",
-    "/sdcard/Movies",
-    "/sdcard/Documents/Navsuite"
+    "/sdcard/Movies"
 ]
 
 # Local directory to save the incident report
@@ -241,8 +240,8 @@ if __name__ == "__main__":
     collect_logs(selected_device)
 
     # Step 5: Collect bug report
-    if not args.simplified:
-        collect_bugreport(report_dir, selected_device)
+    #if not args.simplified:
+        #collect_bugreport(report_dir, selected_device)
 
     # Step 6: Create ZIP
     metadata = f"Incident Summary: {user_summary}\nTimestamp: {timestamp}\nDevice: {selected_device}"
