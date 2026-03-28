@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
+import argparse
 import os
+import re
+import shutil
 import subprocess
+import sys
 import zipfile
 from datetime import datetime
-import argparse
-import re
-import sys
-import shutil
 
 # Define file and directory paths on the ADB device
 directories_to_pull = [
@@ -15,25 +15,29 @@ directories_to_pull = [
     "/sdcard/Movies"
 ]
 
-# Local directory to save the incident report
-incident_dir = "incident_reports"
-os.makedirs(incident_dir, exist_ok=True)
+def create_report_paths():
+    """Create and return the local filesystem paths for a report run."""
+    incident_dir = "incident_reports"
+    os.makedirs(incident_dir, exist_ok=True)
 
-# Timestamp for unique report naming
-timestamp = datetime.now().strftime("%m-%d-%Y_%H:%M:%S")
-report_dir = os.path.join(incident_dir, f"report_{timestamp}")
-os.makedirs(report_dir, exist_ok=True)
+    timestamp = datetime.now().strftime("%m-%d-%Y_%H:%M:%S")
+    report_dir = os.path.join(incident_dir, f"report_{timestamp}")
 
-# Subfolders within the report directory
-screen_recordings_dir = os.path.join(report_dir, "Screen Recordings")
-qgc_logs_dir = os.path.join(report_dir, "QGC Logs")
-device_info_dir = os.path.join(report_dir, "Device Info")
-navsuite_log_dir = os.path.join(report_dir, "Navsuite Logs")
+    paths = {
+        "incident_dir": incident_dir,
+        "report_dir": report_dir,
+        "screen_recordings_dir": os.path.join(report_dir, "Screen Recordings"),
+        "qgc_logs_dir": os.path.join(report_dir, "QGC Logs"),
+        "device_info_dir": os.path.join(report_dir, "Device Info"),
+        "navsuite_log_dir": os.path.join(report_dir, "Navsuite Logs"),
+    }
 
-os.makedirs(screen_recordings_dir, exist_ok=True)
-os.makedirs(qgc_logs_dir, exist_ok=True)
-os.makedirs(device_info_dir, exist_ok=True)
-os.makedirs(navsuite_log_dir, exist_ok=True)
+    for path in paths.values():
+        if path == incident_dir:
+            continue
+        os.makedirs(path, exist_ok=True)
+
+    return timestamp, paths
 
 def get_connected_devices():
     """Retrieve a list of connected ADB devices."""
@@ -107,7 +111,7 @@ def pull_directory(directory, dest_dir, device):
         print(f"No items found in {directory}")
 
 
-def pull_recent_files(directory, ls_command, dest_dir, num_files, device):
+def pull_recent_files(directory, ls_command, dest_dir, num_files, device, report_paths):
     """Pull the most recent files from a specific directory."""
     print(f"Getting {num_files} most recent file(s) from {directory} on device {device}")
     command = f'shell "{ls_command} | head -n {num_files}"'
@@ -119,11 +123,11 @@ def pull_recent_files(directory, ls_command, dest_dir, num_files, device):
             
             # Determine local destination
             if "Movies" in directory and recent_file.startswith("screen-"):
-                local_path = os.path.join(screen_recordings_dir, recent_file)
+                local_path = os.path.join(report_paths["screen_recordings_dir"], recent_file)
             elif "ConsoleLogs" in directory:
-                local_path = os.path.join(qgc_logs_dir, recent_file)
+                local_path = os.path.join(report_paths["qgc_logs_dir"], recent_file)
             elif "Navsuite" in directory:
-                local_path = os.path.join(navsuite_log_dir, recent_file)
+                local_path = os.path.join(report_paths["navsuite_log_dir"], recent_file)
             else:
                 local_path = os.path.join(dest_dir, recent_file)
 
@@ -135,7 +139,7 @@ def pull_recent_files(directory, ls_command, dest_dir, num_files, device):
     else:
         print(f"No files found in {directory}")
 
-def collect_bugreport(dest_dir, device):
+def collect_bugreport(dest_dir, device, timestamp):
     """Collect a bug report from the device."""
     print("Generating bug report...")
     bugreport_zip = os.path.join(dest_dir, f"bugreport_{timestamp}.zip")
@@ -145,7 +149,7 @@ def collect_bugreport(dest_dir, device):
     except subprocess.CalledProcessError:
         print("Failed to generate bug report")
 
-def collect_logs(device):
+def collect_logs(device, timestamp, report_paths):
     """Collect logs from the device."""
     log_types = {
         "logcat": "logcat -d",
@@ -161,7 +165,7 @@ def collect_logs(device):
     }
 
     for log_name, command in log_types.items():
-        log_path = os.path.join(device_info_dir, f"{log_name}_{timestamp}.txt")
+        log_path = os.path.join(report_paths["device_info_dir"], f"{log_name}_{timestamp}.txt")
         print(f"Collecting {log_name}...")
         output = run_adb_command(command, device=device)
         if output:
@@ -197,16 +201,21 @@ def create_zip(source_dir, output_filename, metadata):
         zipf.write(metadata_path, "user_report.txt")
     print(f"Incident report created: {output_filename}")
 
-# Main execution
-if __name__ == "__main__":
-    devices = get_connected_devices()
-    selected_device = select_device(devices)
-    print(f"Selected device: {selected_device}")
-
+def parse_args():
+    """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Generate an incident report from an Android device.")
     parser.add_argument("-n", "--num_recent_files", type=int, default=5, help="Number of recent files to pull (default: 5)")
     parser.add_argument("-s", "--simplified", action="store_true", help="Generate a simplified report (without directories and bug report)")
-    args = parser.parse_args()
+    return parser.parse_args()
+
+def main():
+    """Run the current incident collection workflow."""
+    args = parse_args()
+    timestamp, report_paths = create_report_paths()
+
+    devices = get_connected_devices()
+    selected_device = select_device(devices)
+    print(f"Selected device: {selected_device}")
 
     # Get both application directories (if they exist)
     app_directories = get_application_directories(selected_device)
@@ -233,27 +242,37 @@ if __name__ == "__main__":
     # Step 2: Pull specific directories (if not simplified)
     if not args.simplified:
         for directory in directories_to_pull:
-            pull_directory(directory, report_dir, selected_device)
+            pull_directory(directory, report_paths["report_dir"], selected_device)
 
     # Step 3: Pull most recent files
     for directory, ls_command in recent_file_commands:
-        pull_recent_files(directory, ls_command, report_dir, args.num_recent_files, selected_device)
+        pull_recent_files(
+            directory,
+            ls_command,
+            report_paths["report_dir"],
+            args.num_recent_files,
+            selected_device,
+            report_paths,
+        )
 
     # Step 4: Collect logs
-    collect_logs(selected_device)
+    collect_logs(selected_device, timestamp, report_paths)
 
     # Step 5: Collect bug report
     #if not args.simplified:
-        #collect_bugreport(report_dir, selected_device)
+        #collect_bugreport(report_paths["report_dir"], selected_device, timestamp)
 
     # Step 6: Create ZIP
     metadata = f"Incident Summary: {user_summary}\nTimestamp: {timestamp}\nDevice: {selected_device}"
-    zip_file_name = os.path.join(incident_dir, f"QA_bug_report_{timestamp}.zip")
-    create_zip(report_dir, zip_file_name, metadata)
+    zip_file_name = os.path.join(report_paths["incident_dir"], f"QA_bug_report_{timestamp}.zip")
+    create_zip(report_paths["report_dir"], zip_file_name, metadata)
     
     # Step 7: Clean up the extracted report directory
     try:
-        shutil.rmtree(report_dir)
-        print(f"Cleaned up temporary folder: {report_dir}")
+        shutil.rmtree(report_paths["report_dir"])
+        print(f"Cleaned up temporary folder: {report_paths['report_dir']}")
     except Exception as e:
         print(f"Failed to delete temporary folder: {e}")
+
+if __name__ == "__main__":
+    main()
