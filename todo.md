@@ -70,10 +70,14 @@ ADB-Bug-Report-Generator/
 - examples/
 
 ### Tasks
-- Move logic into `src/`
-- Separate CLI from logic
-- Create ADB wrapper module
-- Add structured error handling
+- [x] Move logic into `src/`
+- [x] Separate CLI from logic
+- [x] Create ADB wrapper module
+- [x] Add structured error handling
+- [x] Add `pyproject.toml` and `requirements.txt`
+- [x] Keep a compatibility wrapper for `generate_bug_report.py`
+- [x] Create `tests/` and `examples/` scaffolding
+- [x] Add initial `pytest` unit and integration coverage
 
 ### Current Progress
 - Package layout created under `src/adb_bug_report_generator/`
