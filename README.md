@@ -1,4 +1,4 @@
-# Android Bug Report Script
+# ADB Bug Report Generator
 
 ## Overview
 This Python script automates the process of collecting various data and logs from a connected Android device using ADB (Android Debug Bridge). It organizes the collected files into a structured directory and generates a zipped bug report for further analysis.
@@ -38,9 +38,12 @@ The repo is now being restructured into a package under `src/adb_bug_report_gene
    - Enable Developer Options on your Android device.
    - Enable USB Debugging.
 
----
+- Collect Android diagnostics using ADB
+- Package debugging artifacts consistently
+- Support repeatable troubleshooting workflows
 
-## Usage
+## Current Behavior
+Today the repo provides a single script, [generate_bug_report.py](/home/vhinson/dev/ADB-Bug-Report-Generator/generate_bug_report.py), that:
 
 ### Running the Script
 1. Connect the Android device to your computer via USB.
@@ -69,34 +72,25 @@ Example:
 python3 generate_bug_report.py -n 3 -s
 ```
 
----
+## Out of Scope
+The intended repo scope does not include:
 
-## Directory Structure
-The script organizes collected files as follows:
-```
-incident_reports/
-  report_<timestamp>/
-    Device Info/
-      logcat_<timestamp>.txt
-      device_info_<timestamp>.txt
-      ...
-    QGC Logs/
-      <recent_console_logs>
-    Screen Recordings/
-      <recent_screen_recordings>
-    Navsuite Logs/
-      <recent_navsuite_logs>
-    bugreport_<timestamp>.zip
+- Performance benchmarking
+- Battery or thermal test automation
+- Full end-to-end QA automation
+
+## Prerequisites
+1. Install Python 3.7 or newer.
+2. Install Android Debug Bridge (`adb`) and make sure it is available on your `PATH`.
+3. Enable Developer Options and USB debugging on the Android device.
+4. Verify connectivity with:
+
+```bash
+adb devices
 ```
 
----
-
-## Output
-1. **Incident Report Directory**: All files are saved in a timestamped directory under `incident_reports/`.
-2. **Zipped Report**: A zip file containing the entire report is created for convenience.
-3. **Metadata**: Includes a user-provided incident summary and other details.
-
----
+## Usage
+Run the current script directly:
 
 ## Testing Strategy
 This repo will follow the QA testing pyramid:
@@ -118,18 +112,13 @@ Current local test command:
 - If no devices are detected, the script exits with an appropriate message.
 - If directories or files cannot be pulled, errors are logged, and the script continues execution for other tasks.
 
----
+Optional arguments:
 
-## Customization
-To add or modify the data collected:
-1. Edit the `log_types` dictionary to include new commands.
-2. Add additional directories to the `directories_to_pull` list.
+- `-n`, `--num_recent_files`: Number of recent files to pull from configured directories. Default is `5`.
+- `-s`, `--simplified`: Skip the broad directory pulls and create a smaller report.
 
----
+Example:
 
-## Example
-### Simplified Mode
-To generate a simplified report with the 3 most recent files:
 ```bash
 python3 generate_bug_report.py -n 3 -s
 ```
@@ -142,12 +131,9 @@ python3 generate_bug_report.py -n 5
 
 ---
 
-## Troubleshooting
-1. **Device Not Detected**:
-   - Ensure the device is properly connected and USB debugging is enabled.
-   - Check ADB connectivity with `adb devices`.
-2. **Permission Denied**:
-   - Ensure you have appropriate permissions to execute ADB commands.
-   - Verify that the ADB connection is authorized on the device.
+- `Device Info`
+- `QGC Logs`
+- `Screen Recordings`
+- `Navsuite Logs`
 
 ---
