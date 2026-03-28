@@ -66,13 +66,13 @@ def format_operator_error(exc):
     return str(exc)
 
 
-def main(args=None, logger=None, client=None, prompt=input):
+def main(args=None, logger=None, client=None, prompt=input, device_prompt=input):
     """Run the CLI workflow."""
     args = args or parse_args()
     logger = logger or setup_logging(verbose=args.verbose)
 
     try:
-        return run(args, logger, client=client, prompt=prompt)
+        return run(args, logger, client=client, prompt=prompt, device_prompt=device_prompt)
     except DeviceSelectionError as exc:
         logger.error(format_operator_error(exc))
         return 1
@@ -81,7 +81,7 @@ def main(args=None, logger=None, client=None, prompt=input):
         return 1
 
 
-def run(args, logger, client=None, prompt=input):
+def run(args, logger, client=None, prompt=input, device_prompt=input):
     """Orchestrate a collection run."""
     client = client or ADBClient()
     paths = create_report_paths(args.output_dir)
@@ -92,7 +92,7 @@ def run(args, logger, client=None, prompt=input):
     )
 
     devices = client.list_devices()
-    selected_device = select_device(devices)
+    selected_device = select_device(devices, prompt=device_prompt, output=logger.info)
     logger.info("Selected device: %s", selected_device)
 
     app_directories = get_application_directories(client, selected_device)

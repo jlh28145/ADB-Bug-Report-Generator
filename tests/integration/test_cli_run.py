@@ -10,6 +10,7 @@ from adb_bug_report_generator.exceptions import AdbCommandError
 from tests.integration.fakes import (
     FakeADBClient,
     MissingAdbClient,
+    MultiDeviceADBClient,
     NoDeviceADBClient,
     PartiallyFailingADBClient,
 )
@@ -153,3 +154,32 @@ def test_main_returns_clear_error_when_adb_is_missing(tmp_path, caplog):
     assert "ADB executable not found." in caplog.text
     assert "Install Android Platform Tools" in caplog.text
     assert "Command: adb devices." in caplog.text
+
+
+def test_run_allows_operator_to_select_from_multiple_devices(tmp_path):
+    args = SimpleNamespace(
+        num_recent_files=2,
+        simplified=True,
+        include_bugreport=False,
+        output_dir=str(tmp_path / "output"),
+    )
+    logger = logging.getLogger("test_cli_multi_device")
+    fake_client = MultiDeviceADBClient()
+    prompts = iter(["2"])
+
+    exit_code = run(
+        args,
+        logger,
+        client=fake_client,
+        prompt=lambda _: "multi-device summary",
+        device_prompt=lambda _: next(prompts),
+    )
+
+    assert exit_code == 0
+
+    zip_files = list((tmp_path / "output").glob("QA_bug_report_*.zip"))
+    assert len(zip_files) == 1
+
+    with ZipFile(zip_files[0]) as archive:
+        metadata = archive.read("user_report.txt").decode("utf-8")
+        assert "device-1234" in metadata

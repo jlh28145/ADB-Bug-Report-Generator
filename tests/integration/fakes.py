@@ -72,3 +72,10 @@ class MissingAdbClient(FakeADBClient):
             "ADB executable not found. Install Android Platform Tools and ensure 'adb' is available on your PATH.",
             ["adb", "devices"],
         )
+
+
+class MultiDeviceADBClient(FakeADBClient):
+    """ADB client fake that reports more than one connected device."""
+
+    def list_devices(self):
+        return ["emulator-5554", "device-1234"]

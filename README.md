@@ -53,6 +53,7 @@ The repo is now being restructured into a package under `src/adb_bug_report_gene
    pip install -e .
    python3 -m adb_bug_report_generator
    ```
+   In restricted or offline environments, editable install may require local packaging tools already present in the virtual environment.
 4. Follow the prompts to select a device (if multiple devices are connected).
 5. Provide a summary of the incident when prompted.
 

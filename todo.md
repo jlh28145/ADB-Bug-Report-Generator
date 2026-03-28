@@ -75,6 +75,12 @@ ADB-Bug-Report-Generator/
 - Create ADB wrapper module
 - Add structured error handling
 
+### Current Progress
+- Package layout created under `src/adb_bug_report_generator/`
+- Legacy script converted to a compatibility wrapper entry point
+- Filesystem, collector, CLI, ADB, logging, and exception concerns split into modules
+- `pytest` adopted for unit and integration test layers
+
 ---
 
 ## Phase 3: Standardize Core Functionality
