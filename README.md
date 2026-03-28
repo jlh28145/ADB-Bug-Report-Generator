@@ -1,129 +1,77 @@
-# Android Bug Report Script
+# ADB Bug Report Generator
 
 ## Overview
-This Python script automates the process of collecting various data and logs from a connected Android device using ADB (Android Debug Bridge). It organizes the collected files into a structured directory and generates a zipped bug report for further analysis.
+ADB Bug Report Generator is a Python-based Android diagnostics collector for troubleshooting workflows. The current repo packages common ADB artifacts, selected device files, and incident notes into a timestamped archive so engineers or QA can review a single bundle after a run.
 
----
+This project is being upgraded from a one-off script into a cleaner CLI-driven tool. The current implementation is still script-first, but the repo direction is now explicit:
 
-## Features
-- Automatically detects connected Android devices.
-- Allows selecting from multiple connected devices.
-- Pulls specific directories and recent files from the device:
-  - **Screen Recordings**
-  - **QGroundControl Logs**
-  - **Navsuite Logs**
-- Collects detailed system information and logs, including:
-  - Logcat logs
-  - Device properties
-  - Memory usage
-  - CPU usage
-  - Network stats
-  - Battery information
-  - Storage info
-  - Event logs
-- Generates an ADB bug report.
-- Saves all data in a timestamped incident report folder.
-- Option to zip the collected data for easy sharing or archival.
+- Collect Android diagnostics using ADB
+- Package debugging artifacts consistently
+- Support repeatable troubleshooting workflows
 
----
+## Current Behavior
+Today the repo provides a single script, [generate_bug_report.py](/home/vhinson/dev/ADB-Bug-Report-Generator/generate_bug_report.py), that:
+
+- Detects connected Android devices with ADB
+- Prompts the user to choose a device if more than one is connected
+- Pulls selected media and app log directories from device storage
+- Collects device diagnostics such as `logcat`, `getprop`, `dumpsys`, `top`, and storage info
+- Writes results into a timestamped local report folder
+- Creates a zip archive containing the collected artifacts and user-provided incident summary
+
+## Current Limitations
+This script is still an early implementation and has a few important constraints:
+
+- It assumes `adb` is installed and available on `PATH`
+- It depends on an interactive terminal for device selection and incident summary input
+- Several collection targets are hardcoded for a specific workflow
+- The bugreport collection function exists in code but is not currently enabled in the main flow
+- Error handling is basic and not yet standardized
+
+## Out of Scope
+The intended repo scope does not include:
+
+- Performance benchmarking
+- Battery or thermal test automation
+- Full end-to-end QA automation
 
 ## Prerequisites
-1. **Python Environment**: Install Python 3.7 or higher.
-2. **ADB (Android Debug Bridge)**:
-   - Ensure ADB is installed and available in your system's PATH.
-   - Verify ADB connectivity with your device using `adb devices`.
-3. **Required Python Packages**:
-4. **ADB Device Setup**:
-   - Enable Developer Options on your Android device.
-   - Enable USB Debugging.
+1. Install Python 3.7 or newer.
+2. Install Android Debug Bridge (`adb`) and make sure it is available on your `PATH`.
+3. Enable Developer Options and USB debugging on the Android device.
+4. Verify connectivity with:
 
----
+```bash
+adb devices
+```
 
 ## Usage
+Run the current script directly:
 
-### Running the Script
-1. Connect the Android device to your computer via USB.
-2. Run the script:
-   ```bash
-   python generate_bug_report.py
-   ```
-3. Follow the prompts to select a device (if multiple devices are connected).
-4. Provide the number of recent files to pull (optional, default is 5).
-5. Provide a summary of the incident when prompted.
+```bash
+python generate_bug_report.py
+```
 
-### Command-line Arguments
-- `-n`, `--num_recent_files`: Specify the number of recent files to pull from directories. Default is 5.
-- `-s`, `--simplified`: Generate a simplified report (skips pulling directories and bug report).
+Optional arguments:
+
+- `-n`, `--num_recent_files`: Number of recent files to pull from configured directories. Default is `5`.
+- `-s`, `--simplified`: Skip the broad directory pulls and create a smaller report.
 
 Example:
+
 ```bash
 python generate_bug_report.py -n 3 -s
 ```
 
----
+## Current Output
+The script writes into `incident_reports/` and creates a timestamped zip archive for each run. The internal folder structure currently includes directories such as:
 
-## Directory Structure
-The script organizes collected files as follows:
-```
-incident_reports/
-  report_<timestamp>/
-    Device Info/
-      logcat_<timestamp>.txt
-      device_info_<timestamp>.txt
-      ...
-    QGC Logs/
-      <recent_console_logs>
-    Screen Recordings/
-      <recent_screen_recordings>
-    Navsuite Logs/
-      <recent_navsuite_logs>
-    bugreport_<timestamp>.zip
-```
+- `Device Info`
+- `QGC Logs`
+- `Screen Recordings`
+- `Navsuite Logs`
 
----
+This layout will be standardized in later phases of the roadmap.
 
-## Output
-1. **Incident Report Directory**: All files are saved in a timestamped directory under `incident_reports/`.
-2. **Zipped Report**: A zip file containing the entire report is created for convenience.
-3. **Metadata**: Includes a user-provided incident summary and other details.
-
----
-
-## Error Handling
-- If no devices are detected, the script exits with an appropriate message.
-- If directories or files cannot be pulled, errors are logged, and the script continues execution for other tasks.
-
----
-
-## Customization
-To add or modify the data collected:
-1. Edit the `log_types` dictionary to include new commands.
-2. Add additional directories to the `directories_to_pull` list.
-
----
-
-## Example
-### Simplified Mode
-To generate a simplified report with the 3 most recent files:
-```bash
-python generate_bug_report.py -n 3 -s
-```
-
-### Full Report
-To generate a full incident report with all data:
-```bash
-python generate_bug_report.py -n 5
-```
-
----
-
-## Troubleshooting
-1. **Device Not Detected**:
-   - Ensure the device is properly connected and USB debugging is enabled.
-   - Check ADB connectivity with `adb devices`.
-2. **Permission Denied**:
-   - Ensure you have appropriate permissions to execute ADB commands.
-   - Verify that the ADB connection is authorized on the device.
-
----
-
+## Roadmap
+The planned next steps are documented in [todo.md](/home/vhinson/dev/ADB-Bug-Report-Generator/todo.md). Phase 0 defines the repo identity, and Phase 1 captures the current audit so the refactor can proceed from a clear baseline.
