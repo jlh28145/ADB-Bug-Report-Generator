@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "adb-bug-report-generator"
+version = "0.1.0"
+description = "CLI-driven Android diagnostics utility for collecting ADB troubleshooting artifacts."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+  { name = "Vinson" }
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+adb-bug-report-generator = "adb_bug_report_generator.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

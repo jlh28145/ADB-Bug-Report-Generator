@@ -38,3 +38,5 @@ build/
 
 # Debugging artifacts
 debug.log
+.venv/
+__pycache__/

@@ -162,6 +162,11 @@ Functions:
 - pytest
 - mock / monkeypatch
 
+### Test Pyramid
+- Unit tests should be the majority of coverage
+- Integration tests should validate module collaboration with mocked ADB behavior
+- End-to-end tests should stay small and focus on emulator and selected real-device smoke coverage
+
 ### Coverage Targets
 - CLI behavior
 - ADB wrapper
@@ -182,7 +187,7 @@ Functions:
 
 ### Commands
 
-pytest  
+pytest
 ruff check .  
 black --check .  
 
