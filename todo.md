@@ -148,56 +148,56 @@ ADB-Bug-Report-Generator/
 ## Phase 3: Device Capability Detection
 
 ### Goals
-- [ ] Detect whether the target is an emulator or physical device
-- [ ] Detect Android version and SDK level
-- [ ] Detect root availability
-- [ ] Detect supported commands and accessible paths
+- [x] Detect whether the target is an emulator or physical device
+- [x] Detect Android version and SDK level
+- [x] Detect root availability
+- [x] Detect supported commands and accessible paths
 
 ### Tasks
-- [ ] Add device profile collection at startup
-- [ ] Capture values such as:
-- [ ] serial
-- [ ] model
-- [ ] manufacturer
-- [ ] Android version
-- [ ] SDK level
-- [ ] emulator flag
-- [ ] root availability
-- [ ] Build a compatibility decision layer
-- [ ] Record capability results in metadata
+- [x] Add device profile collection at startup
+- [x] Capture values such as:
+- [x] serial
+- [x] model
+- [x] manufacturer
+- [x] Android version
+- [x] SDK level
+- [x] emulator flag
+- [x] root availability
+- [x] Build a compatibility decision layer
+- [x] Record capability results in metadata
 
 ### Senior SDET Signal
-- [ ] Shows robust environment-aware automation instead of happy-path scripting
+- [x] Shows robust environment-aware automation instead of happy-path scripting
 
 ---
 
 ## Phase 4: Standardize Core Functionality
 
 ### Core Features
-- [ ] Collect bugreport when supported
-- [ ] Collect logcat
-- [ ] Collect device info
-- [ ] Collect optional package diagnostics
-- [ ] Collect run metadata
+- [x] Collect bugreport when supported
+- [x] Collect logcat
+- [x] Collect device info
+- [x] Collect optional package diagnostics
+- [x] Collect run metadata
 
 ### Output Structure
 
 output/
-- [ ] YYYY-MM-DD_HHMMSS/
-- [ ] run_summary.txt
-- [ ] device_info.txt
-- [ ] logcat.txt
-- [ ] bugreport.zip
-- [ ] metadata.json
+- [x] YYYY-MM-DD_HHMMSS/
+- [x] run_summary.txt
+- [x] device_info.txt
+- [x] logcat.txt
+- [x] bugreport.zip
+- [x] metadata.json
 
 ### Tasks
-- [ ] Standardize file naming
-- [ ] Ensure consistent output structure
-- [ ] Support partial-success runs with explicit status reporting
-- [ ] Make outputs deterministic enough for automated validation
+- [x] Standardize file naming
+- [x] Ensure consistent output structure
+- [x] Support partial-success runs with explicit status reporting
+- [x] Make outputs deterministic enough for automated validation
 
 ### Senior SDET Signal
-- [ ] Shows consistency, diagnosability, and automation-friendly outputs
+- [x] Shows consistency, diagnosability, and automation-friendly outputs
 
 ---
 
@@ -210,17 +210,17 @@ output/
 - [ ] Missing commands or inaccessible paths
 
 ### Tasks
-- [ ] Define preferred and fallback collectors for each artifact type
+- [x] Define preferred and fallback collectors for each artifact type
 - [ ] Prefer non-root strategies first where practical
 - [ ] Use root-enhanced collection only when available and justified
-- [ ] Skip unsupported steps with explicit reasons
-- [ ] Add compatibility notes to logs and metadata
+- [x] Skip unsupported steps with explicit reasons
+- [x] Add compatibility notes to logs and metadata
 
 ### Example Fallbacks
 - [ ] Use one device-info command when another is unavailable
 - [ ] Skip protected-path pulls on non-rooted devices
 - [ ] Mark hardware-specific collectors as unsupported on emulators
-- [ ] Adjust shell commands when Android version output differs
+- [x] Adjust shell commands when Android version output differs
 
 ### Senior SDET Signal
 - [ ] Demonstrates resilient automation design and platform-aware troubleshooting

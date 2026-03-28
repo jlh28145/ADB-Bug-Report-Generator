@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
+import json
 from pathlib import Path
 import shutil
 import zipfile
@@ -55,16 +56,18 @@ def write_text_file(path, content):
     path.write_text(content, encoding="utf-8")
 
 
-def create_zip_archive(source_dir, output_filename, metadata):
-    """Create a zip archive containing report files and metadata."""
-    metadata_path = source_dir / "metadata.txt"
-    write_text_file(metadata_path, metadata)
+def write_json_file(path, content):
+    """Write JSON content to disk."""
+    path.write_text(json.dumps(content, indent=2, sort_keys=True), encoding="utf-8")
+
+
+def create_zip_archive(source_dir, output_filename):
+    """Create a zip archive containing report files."""
 
     with zipfile.ZipFile(output_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
         for file_path in source_dir.rglob("*"):
             if file_path.is_file():
                 zipf.write(file_path, file_path.relative_to(source_dir))
-        zipf.write(metadata_path, "user_report.txt")
 
 
 def cleanup_report_dir(report_dir):
