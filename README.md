@@ -1,9 +1,42 @@
 # ADB Bug Report Generator
 
 ## Overview
-ADB Bug Report Generator is a Python-based Android diagnostics collector for troubleshooting workflows. The current repo packages common ADB artifacts, selected device files, and incident notes into a timestamped archive so engineers or QA can review a single bundle after a run.
+This Python script automates the process of collecting various data and logs from a connected Android device using ADB (Android Debug Bridge). It organizes the collected files into a structured directory and generates a zipped bug report for further analysis.
 
-This project is being upgraded from a one-off script into a cleaner CLI-driven tool. The current implementation is still script-first, but the repo direction is now explicit:
+The repo is now being restructured into a package under `src/adb_bug_report_generator/` so the CLI, ADB interactions, filesystem behavior, and collection workflow can evolve independently.
+
+---
+
+## Features
+- Automatically detects connected Android devices.
+- Allows selecting from multiple connected devices.
+- Pulls specific directories and recent files from the device:
+  - **Screen Recordings**
+  - **QGroundControl Logs**
+  - **Navsuite Logs**
+- Collects detailed system information and logs, including:
+  - Logcat logs
+  - Device properties
+  - Memory usage
+  - CPU usage
+  - Network stats
+  - Battery information
+  - Storage info
+  - Event logs
+- Generates an ADB bug report.
+- Saves all data in a timestamped incident report folder.
+- Option to zip the collected data for easy sharing or archival.
+
+---
+
+## Prerequisites
+1. **Python Environment**: Install Python 3.7 or higher.
+2. **ADB (Android Debug Bridge)**:
+   - Ensure ADB is installed and available in your system's PATH.
+   - Verify ADB connectivity with your device using `adb devices`.
+3. **ADB Device Setup**:
+   - Enable Developer Options on your Android device.
+   - Enable USB Debugging.
 
 - Collect Android diagnostics using ADB
 - Package debugging artifacts consistently
@@ -12,21 +45,32 @@ This project is being upgraded from a one-off script into a cleaner CLI-driven t
 ## Current Behavior
 Today the repo provides a single script, [generate_bug_report.py](/home/vhinson/dev/ADB-Bug-Report-Generator/generate_bug_report.py), that:
 
-- Detects connected Android devices with ADB
-- Prompts the user to choose a device if more than one is connected
-- Pulls selected media and app log directories from device storage
-- Collects device diagnostics such as `logcat`, `getprop`, `dumpsys`, `top`, and storage info
-- Writes results into a timestamped local report folder
-- Creates a zip archive containing the collected artifacts and user-provided incident summary
+### Running the Script
+1. Connect the Android device to your computer via USB.
+2. Run the compatibility script:
+   ```bash
+   python3 generate_bug_report.py
+   ```
+3. Or install the package in editable mode and run the module entry point:
+   ```bash
+   pip install -e .
+   python3 -m adb_bug_report_generator
+   ```
+   In restricted or offline environments, editable install may require local packaging tools already present in the virtual environment.
+4. Follow the prompts to select a device (if multiple devices are connected).
+5. Provide a summary of the incident when prompted.
 
-## Current Limitations
-This script is still an early implementation and has a few important constraints:
+### Command-line Arguments
+- `-n`, `--num-recent-files`: Specify the number of recent files to pull from directories. Default is 5.
+- `-s`, `--simplified`: Generate a simplified report (skips pulling directories and bug report).
+- `--include-bugreport`: Include a bugreport when running a full collection.
+- `--output-dir`: Set the local output directory for report artifacts.
+- `--verbose`: Enable verbose logging.
 
-- It assumes `adb` is installed and available on `PATH`
-- It depends on an interactive terminal for device selection and incident summary input
-- Several collection targets are hardcoded for a specific workflow
-- The bugreport collection function exists in code but is not currently enabled in the main flow
-- Error handling is basic and not yet standardized
+Example:
+```bash
+python3 generate_bug_report.py -n 3 -s
+```
 
 ## Out of Scope
 The intended repo scope does not include:
@@ -48,9 +92,25 @@ adb devices
 ## Usage
 Run the current script directly:
 
+## Testing Strategy
+This repo will follow the QA testing pyramid:
+
+- **Unit tests** in `tests/unit/` for small, deterministic logic such as path creation, selection logic, and compatibility decisions.
+- **Integration tests** in `tests/integration/` for module interactions using mocked or controlled ADB behavior.
+- **End-to-end tests** in `tests/e2e/` for small smoke-test coverage against emulators and selected real devices.
+
+The goal is to keep most coverage in unit tests, add targeted integration coverage for orchestration and failure handling, and keep emulator or physical-device runs focused and lightweight.
+
+Current local test command:
 ```bash
-python generate_bug_report.py
+.venv/bin/python -m pytest
 ```
+
+---
+
+## Error Handling
+- If no devices are detected, the script exits with an appropriate message.
+- If directories or files cannot be pulled, errors are logged, and the script continues execution for other tasks.
 
 Optional arguments:
 
@@ -60,18 +120,20 @@ Optional arguments:
 Example:
 
 ```bash
-python generate_bug_report.py -n 3 -s
+python3 generate_bug_report.py -n 3 -s
 ```
 
-## Current Output
-The script writes into `incident_reports/` and creates a timestamped zip archive for each run. The internal folder structure currently includes directories such as:
+### Full Report
+To generate a full incident report with all data:
+```bash
+python3 generate_bug_report.py -n 5
+```
+
+---
 
 - `Device Info`
 - `QGC Logs`
 - `Screen Recordings`
 - `Navsuite Logs`
 
-This layout will be standardized in later phases of the roadmap.
-
-## Roadmap
-The planned next steps are documented in [todo.md](/home/vhinson/dev/ADB-Bug-Report-Generator/todo.md). Phase 0 defines the repo identity, and Phase 1 captures the current audit so the refactor can proceed from a clear baseline.
+---

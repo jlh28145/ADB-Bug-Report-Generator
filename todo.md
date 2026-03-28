@@ -128,17 +128,20 @@ ADB-Bug-Report-Generator/
 - [ ] `adr/`
 
 ### Tasks
-- [ ] Move logic into `src/`
-- [ ] Separate CLI from collection logic
-- [ ] Create an ADB wrapper module
-- [ ] Add structured error handling
-- [ ] Separate generic collectors from project-specific collectors
-- [ ] Make modules easy to mock in tests
-- [x] Reduce import-time side effects in the existing script
-- [x] Move runtime setup under a `main()` flow in the existing script
+- [x] Move logic into `src/`
+- [x] Separate CLI from logic
+- [x] Create ADB wrapper module
+- [x] Add structured error handling
+- [x] Add `pyproject.toml` and `requirements.txt`
+- [x] Keep a compatibility wrapper for `generate_bug_report.py`
+- [x] Create `tests/` and `examples/` scaffolding
+- [x] Add initial `pytest` unit and integration coverage
 
-### Senior SDET Signal
-- [ ] Strong module boundaries and maintainable automation design
+### Current Progress
+- Package layout created under `src/adb_bug_report_generator/`
+- Legacy script converted to a compatibility wrapper entry point
+- Filesystem, collector, CLI, ADB, logging, and exception concerns split into modules
+- `pytest` adopted for unit and integration test layers
 
 ---
 
@@ -315,6 +318,11 @@ Functions:
 - [ ] pytest
 - [ ] mock / monkeypatch
 
+### Test Pyramid
+- Unit tests should be the majority of coverage
+- Integration tests should validate module collaboration with mocked ADB behavior
+- End-to-end tests should stay small and focus on emulator and selected real-device smoke coverage
+
 ### Coverage Targets
 - [ ] CLI behavior
 - [ ] ADB wrapper
@@ -380,8 +388,9 @@ Functions:
 - [ ] push
 - [ ] pull_request
 
-### Senior SDET Signal
-- [ ] Strong CI ownership and quality enforcement
+pytest
+ruff check .  
+black --check .  
 
 ---
 
@@ -529,32 +538,4 @@ Functions:
 
 ---
 
-## Suggested Execution Order
-
-### Milestone 1
-- [x] Phase 0
-- [x] Phase 1
-- [ ] Phase 2
-
-### Milestone 2
-- [ ] Phase 3
-- [ ] Phase 4
-- [ ] Phase 5
-- [ ] Phase 6
-
-### Milestone 3
-- [ ] Phase 7
-- [ ] Phase 8
-- [ ] Phase 9
-- [ ] Phase 10
-
-### Milestone 4
-- [ ] Phase 11
-- [ ] Phase 12
-- [ ] Phase 13
-
-### Milestone 5
-- [ ] Phase 14
-- [ ] Phase 15
-- [ ] Phase 16
-- [ ] Phase 17
+Collecting Android debugging artifacts in a reliable, repeatable, professional way
