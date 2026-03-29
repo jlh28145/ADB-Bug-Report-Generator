@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import re
 import subprocess
 
-from adb_bug_report_generator.exceptions import AdbCommandError
+from adb_bug_report_generator.exceptions import AdbCommandError, AdbTimeoutError
 
 
 ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
@@ -15,12 +15,23 @@ class ADBClient:
     """Thin wrapper around ADB subprocess calls."""
 
     executable: str = "adb"
+    timeout_seconds: float | None = None
 
     def list_devices(self):
         """Return connected device serials."""
+        return [record["serial"] for record in self.list_device_records() if record["state"] == "device"]
+
+    def list_device_records(self):
+        """Return connected device serials and their reported ADB states."""
         result = self._run([self.executable, "devices"])
         lines = result.stdout.strip().splitlines()
-        return [line.split()[0] for line in lines[1:] if "device" in line]
+        records = []
+        for line in lines[1:]:
+            parts = line.split()
+            if len(parts) < 2:
+                continue
+            records.append({"serial": parts[0], "state": parts[1]})
+        return records
 
     def shell_text(self, command, device=None):
         """Run an ADB shell command and return cleaned text output."""
@@ -46,11 +57,25 @@ class ADBClient:
 
     def _run(self, args):
         try:
-            return subprocess.run(args, text=True, capture_output=True, check=True)
+            return subprocess.run(
+                args,
+                text=True,
+                capture_output=True,
+                check=True,
+                timeout=self.timeout_seconds,
+            )
         except FileNotFoundError as exc:
             raise AdbCommandError(
                 "ADB executable not found. Install Android Platform Tools and ensure 'adb' is available on your PATH.",
                 args,
+                exit_code=4,
+            ) from exc
+        except subprocess.TimeoutExpired as exc:
+            timeout_seconds = self.timeout_seconds if self.timeout_seconds is not None else 0
+            raise AdbTimeoutError(
+                f"ADB command timed out after {timeout_seconds} seconds.",
+                args,
+                timeout_seconds,
             ) from exc
         except subprocess.CalledProcessError as exc:
             raise AdbCommandError(

@@ -48,7 +48,7 @@ This repo should demonstrate:
 - [ ] Non-rooted devices
 
 ### Platform Support
-- [ ] Handle Android version differences where commands, paths, or permissions vary
+- [x] Handle Android version differences where commands, paths, or permissions vary
 - [ ] Prefer capability detection over hardcoded assumptions
 - [ ] Gracefully degrade when an artifact cannot be collected on a given device
 
@@ -204,26 +204,26 @@ output/
 ## Phase 5: Build Compatibility Fallbacks
 
 ### Fallback Categories
-- [ ] Android version differences
-- [ ] Rooted vs non-rooted devices
-- [ ] Emulator vs physical device
-- [ ] Missing commands or inaccessible paths
+- [x] Android version differences
+- [x] Rooted vs non-rooted devices
+- [x] Emulator vs physical device
+- [x] Missing commands or inaccessible paths
 
 ### Tasks
 - [x] Define preferred and fallback collectors for each artifact type
-- [ ] Prefer non-root strategies first where practical
-- [ ] Use root-enhanced collection only when available and justified
+- [x] Prefer non-root strategies first where practical
+- [x] Use root-enhanced collection only when available and justified
 - [x] Skip unsupported steps with explicit reasons
 - [x] Add compatibility notes to logs and metadata
 
 ### Example Fallbacks
-- [ ] Use one device-info command when another is unavailable
-- [ ] Skip protected-path pulls on non-rooted devices
-- [ ] Mark hardware-specific collectors as unsupported on emulators
+- [x] Use one device-info command when another is unavailable
+- [x] Skip protected-path pulls on non-rooted devices
+- [x] Mark hardware-specific collectors as unsupported on emulators
 - [x] Adjust shell commands when Android version output differs
 
 ### Senior SDET Signal
-- [ ] Demonstrates resilient automation design and platform-aware troubleshooting
+- [x] Demonstrates resilient automation design and platform-aware troubleshooting
 
 ---
 
@@ -238,50 +238,50 @@ python -m adb_bug_report_generator \
   --include-bugreport
 
 ### Flags
-- [ ] --device
-- [ ] --package
-- [ ] --output-dir
-- [ ] --include-logcat
-- [ ] --include-bugreport
-- [ ] --include-device-info
-- [ ] --verbose
-- [ ] --timeout
-- [ ] --non-interactive
-- [ ] --incident-summary
-- [ ] --fail-on-partial
-- [ ] --allow-emulator
-- [ ] --require-root
-- [ ] --compat-mode
+- [x] --device
+- [x] --package
+- [x] --output-dir
+- [x] logcat collection toggle
+- [x] --include-bugreport
+- [x] device-info collection toggle
+- [x] --verbose
+- [x] --timeout
+- [x] --non-interactive
+- [x] --incident-summary
+- [x] --fail-on-partial
+- [x] --allow-emulator
+- [x] --require-root
+- [x] --compat-mode
 
 ### Senior SDET Signal
-- [ ] Clear operator-facing interfaces and predictable tooling behavior
+- [x] Clear operator-facing interfaces and predictable tooling behavior
 
 ---
 
 ## Phase 7: Logging, Error Handling, and Exit Codes
 
 ### Tasks
-- [ ] Replace prints with logging
-- [ ] Support log levels
-- [ ] Add clear operator-facing error messages
-- [ ] Add explicit exit codes for common failure modes
-- [ ] Ensure runs still produce useful summaries when one collector fails
+- [x] Replace prints with logging
+- [x] Support log levels
+- [x] Add clear operator-facing error messages
+- [x] Add explicit exit codes for common failure modes
+- [x] Ensure runs still produce useful summaries when one collector fails
 
 ### Handle Errors
-- [ ] ADB not installed
-- [ ] no device connected
-- [ ] multiple devices
-- [ ] unauthorized device
-- [ ] timeout
-- [ ] emulator boot not complete
-- [ ] missing paths
-- [ ] unsupported collector for this device type
-- [ ] root required but unavailable
-- [ ] invalid user input
-- [ ] partial artifact collection
+- [x] ADB not installed
+- [x] no device connected
+- [x] multiple devices
+- [x] unauthorized device
+- [x] timeout
+- [x] emulator boot not complete
+- [x] missing paths
+- [x] unsupported collector for this device type
+- [x] root required but unavailable
+- [x] invalid user input
+- [x] partial artifact collection
 
 ### Senior SDET Signal
-- [ ] Demonstrates diagnosability and operational maturity
+- [x] Demonstrates diagnosability and operational maturity
 
 ---
 

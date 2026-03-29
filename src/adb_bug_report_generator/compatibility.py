@@ -26,6 +26,7 @@ class DeviceProfile:
     android_version: str
     sdk_level: int | None
     is_emulator: bool
+    is_boot_completed: bool
     is_rooted: bool
     accessible_paths: tuple[str, ...]
     available_commands: dict[str, bool]
@@ -40,6 +41,7 @@ def detect_device_profile(client, serial):
 
     emulator_property = client.shell_text("getprop ro.kernel.qemu", device=serial)
     is_emulator = serial.startswith("emulator-") or emulator_property == "1"
+    is_boot_completed = _detect_boot_completed(client, serial)
     is_rooted = _detect_root(client, serial)
     accessible_paths = tuple(_detect_accessible_paths(client, serial))
     available_commands = {name: _command_exists(client, name, serial) for name in KNOWN_COMMANDS}
@@ -51,6 +53,7 @@ def detect_device_profile(client, serial):
         android_version=android_version,
         sdk_level=sdk_level,
         is_emulator=is_emulator,
+        is_boot_completed=is_boot_completed,
         is_rooted=is_rooted,
         accessible_paths=accessible_paths,
         available_commands=available_commands,
@@ -77,6 +80,12 @@ def _parse_int(value):
 def _detect_root(client, serial):
     result = client.shell_text("command -v su >/dev/null 2>&1 && echo available", device=serial)
     return result == "available"
+
+
+def _detect_boot_completed(client, serial):
+    sys_boot = client.shell_text("getprop sys.boot_completed", device=serial)
+    dev_boot = client.shell_text("getprop dev.bootcomplete", device=serial)
+    return sys_boot == "1" or dev_boot == "1"
 
 
 def _detect_accessible_paths(client, serial):
