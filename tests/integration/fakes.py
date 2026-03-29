@@ -10,6 +10,9 @@ class FakeADBClient:
     def list_devices(self):
         return ["emulator-5554"]
 
+    def list_device_records(self):
+        return [{"serial": serial, "state": "device"} for serial in self.list_devices()]
+
     def shell_text(self, command, device=None):
         responses = {
             "test -d '/sdcard/Android/data/org.mavlink.qgroundcontrol/files/PDW_GCS' && echo exists": "",
@@ -19,6 +22,8 @@ class FakeADBClient:
             "getprop ro.build.version.release": "14",
             "getprop ro.build.version.sdk": "34",
             "getprop ro.kernel.qemu": "1",
+            "getprop sys.boot_completed": "1",
+            "getprop dev.bootcomplete": "1",
             "command -v su >/dev/null 2>&1 && echo available": "",
             "command -v getprop >/dev/null 2>&1 && echo available": "available",
             "command -v dumpsys >/dev/null 2>&1 && echo available": "available",
@@ -87,6 +92,20 @@ class MissingAdbClient(FakeADBClient):
         raise AdbCommandError(
             "ADB executable not found. Install Android Platform Tools and ensure 'adb' is available on your PATH.",
             ["adb", "devices"],
+            exit_code=4,
+        )
+
+
+class TimeoutADBClient(FakeADBClient):
+    """ADB client fake that simulates a timeout while listing devices."""
+
+    def list_devices(self):
+        from adb_bug_report_generator.exceptions import AdbTimeoutError
+
+        raise AdbTimeoutError(
+            "ADB command timed out after 60.0 seconds.",
+            ["adb", "devices"],
+            60.0,
         )
 
 
@@ -95,6 +114,21 @@ class MultiDeviceADBClient(FakeADBClient):
 
     def list_devices(self):
         return ["emulator-5554", "device-1234"]
+
+    def list_device_records(self):
+        return [
+            {"serial": "emulator-5554", "state": "device"},
+            {"serial": "device-1234", "state": "device"},
+        ]
+
+
+class RootedADBClient(FakeADBClient):
+    """ADB client fake that reports root availability."""
+
+    def shell_text(self, command, device=None):
+        if command == "command -v su >/dev/null 2>&1 && echo available":
+            return "available"
+        return super().shell_text(command, device=device)
 
 
 class FallbackNetworkADBClient(FakeADBClient):
@@ -107,4 +141,38 @@ class FallbackNetworkADBClient(FakeADBClient):
             return ""
         if command == "ip addr":
             return "ip route output"
+        return super().shell_text(command, device=device)
+
+
+class UnsupportedCollectorsADBClient(FakeADBClient):
+    """ADB client fake that simulates a target with limited collector support."""
+
+    def shell_text(self, command, device=None):
+        if command == "command -v bugreport >/dev/null 2>&1 && echo available":
+            return ""
+        if command == "command -v dumpsys >/dev/null 2>&1 && echo available":
+            return ""
+        return super().shell_text(command, device=device)
+
+
+class UnauthorizedADBClient(FakeADBClient):
+    """ADB client fake that reports an unauthorized connected device."""
+
+    def list_device_records(self):
+        return [{"serial": "device-unauthorized", "state": "unauthorized"}]
+
+
+class OfflineADBClient(FakeADBClient):
+    """ADB client fake that reports an offline connected device."""
+
+    def list_device_records(self):
+        return [{"serial": "device-offline", "state": "offline"}]
+
+
+class BootingEmulatorADBClient(FakeADBClient):
+    """ADB client fake that reports an emulator before boot is complete."""
+
+    def shell_text(self, command, device=None):
+        if command in {"getprop sys.boot_completed", "getprop dev.bootcomplete"}:
+            return "0"
         return super().shell_text(command, device=device)

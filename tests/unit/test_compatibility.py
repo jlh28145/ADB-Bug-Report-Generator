@@ -12,6 +12,8 @@ class FakeProfileClient:
             "getprop ro.build.version.release": "14",
             "getprop ro.build.version.sdk": "34",
             "getprop ro.kernel.qemu": "1",
+            "getprop sys.boot_completed": "1",
+            "getprop dev.bootcomplete": "1",
             "command -v su >/dev/null 2>&1 && echo available": "available",
             "command -v getprop >/dev/null 2>&1 && echo available": "available",
             "command -v dumpsys >/dev/null 2>&1 && echo available": "available",
@@ -35,6 +37,7 @@ def test_detect_device_profile_collects_capabilities():
     assert profile.android_version == "14"
     assert profile.sdk_level == 34
     assert profile.is_emulator is True
+    assert profile.is_boot_completed is True
     assert profile.is_rooted is True
     assert profile.accessible_paths == (
         "/sdcard/Android/data/ai.pdw.gcs/files/PDW_GCS",
