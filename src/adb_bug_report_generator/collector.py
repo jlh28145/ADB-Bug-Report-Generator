@@ -16,6 +16,12 @@ APPLICATION_DIRECTORIES = [
     "/sdcard/Android/data/ai.pdw.gcs/files/PDW_GCS",
 ]
 
+ROOT_DIAGNOSTIC_COMMANDS = (
+    ("protected_paths", "su -c 'ls -ld /data/anr /data/tombstones 2>/dev/null'"),
+    ("recent_anr_files", "su -c 'ls -t /data/anr 2>/dev/null | head -n 5'"),
+    ("recent_tombstones", "su -c 'ls -t /data/tombstones 2>/dev/null | head -n 5'"),
+)
+
 LOG_SPECS = (
     ("logcat", "logcat.txt", ("logcat -d",), "logcat"),
     ("device_info", "device_info.txt", ("getprop", "dumpsys window"), "getprop_or_dumpsys"),
@@ -33,6 +39,12 @@ LOG_SPECS = (
     ("storage_info", "storage_info.txt", ("df -h",), "df"),
     ("event_logs", "event_logs.txt", ("dumpsys activity",), "dumpsys"),
 )
+
+LEGACY_COMMAND_OVERRIDES = {
+    "cpu_usage": ("top -n 1 -m 10", "top -n 1"),
+    "storage_info": ("df", "df -h"),
+    "event_logs": ("dumpsys activity activities", "dumpsys activity"),
+}
 
 
 COMMAND_REQUIREMENTS = {
@@ -250,7 +262,7 @@ def collect_logs(client, device, report_paths, device_profile, output=None, log_
     """Collect text-based diagnostic artifacts using compatibility-aware fallbacks."""
     output = output or _noop
     results = []
-    for log_name, filename, commands, requirement in log_specs:
+    for log_name, filename, commands, requirement in resolve_log_specs_for_profile(device_profile, log_specs):
         compatibility_reason = _compatibility_skip_reason(log_name, device_profile)
         if compatibility_reason:
             output(compatibility_reason)
@@ -336,11 +348,45 @@ def collect_package_diagnostics(client, device, report_paths, package, device_pr
     )
 
 
+def collect_protected_path_diagnostics(client, device, report_paths, device_profile, output=None):
+    """Collect limited diagnostics from protected paths when root is available."""
+    output = output or _noop
+
+    if not device_profile.is_rooted:
+        detail = (
+            "Skipped protected-path diagnostics because root access is unavailable; "
+            "preferred non-root collection strategy was used."
+        )
+        output(detail)
+        return ArtifactResult(name="protected_path_diagnostics", status="skipped", detail=detail)
+
+    sections = []
+    for title, command in ROOT_DIAGNOSTIC_COMMANDS:
+        result = client.shell_text(command, device=device)
+        if result:
+            sections.append(f"## {title}\n{result}")
+
+    if not sections:
+        detail = "No protected-path diagnostics were returned, even though root access is available."
+        output(detail)
+        return ArtifactResult(name="protected_path_diagnostics", status="skipped", detail=detail)
+
+    diagnostics_path = report_paths.device_info_dir / "protected_path_diagnostics.txt"
+    diagnostics_path.write_text("\n\n".join(sections), encoding="utf-8")
+    output(f"Protected-path diagnostics saved to {diagnostics_path}")
+    return ArtifactResult(
+        name="protected_path_diagnostics",
+        status="collected",
+        path=str(diagnostics_path),
+        detail="Collected protected-path diagnostics using root-enhanced commands after standard collection.",
+    )
+
+
 def evaluate_requested_collectors(options, device_profile, log_specs):
     """Summarize requested collector support for compatibility policy decisions."""
     unsupported = []
 
-    for log_name, _filename, _commands, requirement in log_specs:
+    for log_name, _filename, _commands, requirement in resolve_log_specs_for_profile(device_profile, log_specs):
         compatibility_reason = _compatibility_skip_reason(log_name, device_profile)
         if compatibility_reason:
             unsupported.append({"name": log_name, "detail": compatibility_reason})
@@ -384,6 +430,21 @@ def filter_log_specs(options):
             continue
         enabled_specs.append(spec)
     return tuple(enabled_specs)
+
+
+def resolve_log_specs_for_profile(device_profile, log_specs):
+    """Apply Android-version-aware command overrides to log specs."""
+    if device_profile.sdk_level is None or device_profile.sdk_level >= 24:
+        return tuple(log_specs)
+
+    resolved_specs = []
+    for log_name, filename, commands, requirement in log_specs:
+        legacy_commands = LEGACY_COMMAND_OVERRIDES.get(log_name)
+        if legacy_commands:
+            resolved_specs.append((log_name, filename, legacy_commands, requirement))
+        else:
+            resolved_specs.append((log_name, filename, commands, requirement))
+    return tuple(resolved_specs)
 
 
 def build_run_summary(artifact_results):

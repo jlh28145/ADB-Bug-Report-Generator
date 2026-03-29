@@ -128,6 +128,12 @@ class RootedADBClient(FakeADBClient):
     def shell_text(self, command, device=None):
         if command == "command -v su >/dev/null 2>&1 && echo available":
             return "available"
+        if command == "su -c 'ls -ld /data/anr /data/tombstones 2>/dev/null'":
+            return "/data/anr\n/data/tombstones"
+        if command == "su -c 'ls -t /data/anr 2>/dev/null | head -n 5'":
+            return "traces.txt"
+        if command == "su -c 'ls -t /data/tombstones 2>/dev/null | head -n 5'":
+            return "tombstone_01"
         return super().shell_text(command, device=device)
 
 

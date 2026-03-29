@@ -14,6 +14,7 @@ from adb_bug_report_generator.collector import (
     collect_bugreport,
     collect_logs,
     collect_package_diagnostics,
+    collect_protected_path_diagnostics,
     evaluate_requested_collectors,
     filter_log_specs,
     get_application_directories,
@@ -270,6 +271,15 @@ def run(args, logger, client=None, prompt=input, device_prompt=input):
             selected_device,
             paths,
             options.package,
+            device_profile,
+            output=logger.info,
+        )
+    )
+    artifact_results.append(
+        collect_protected_path_diagnostics(
+            client,
+            selected_device,
+            paths,
             device_profile,
             output=logger.info,
         )

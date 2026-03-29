@@ -274,6 +274,43 @@ def test_run_collects_optional_package_diagnostics(tmp_path):
         assert package_result["status"] == "collected"
 
 
+def test_run_skips_protected_path_diagnostics_when_root_is_unavailable(tmp_path):
+    args = build_args(tmp_path)
+    logger = logging.getLogger("test_cli_protected_paths_non_root")
+
+    exit_code = run(args, logger, client=FakeADBClient(), prompt=lambda _: "protected paths summary")
+
+    assert exit_code == 0
+
+    zip_files = list((tmp_path / "output").glob("QA_bug_report_*.zip"))
+    assert len(zip_files) == 1
+
+    with ZipFile(zip_files[0]) as archive:
+        metadata = json.loads(archive.read("metadata.json").decode("utf-8"))
+        result = next(item for item in metadata["artifacts"] if item["name"] == "protected_path_diagnostics")
+        assert result["status"] == "skipped"
+        assert "preferred non-root collection strategy" in result["detail"]
+
+
+def test_run_collects_protected_path_diagnostics_when_root_is_available(tmp_path):
+    args = build_args(tmp_path)
+    logger = logging.getLogger("test_cli_protected_paths_root")
+
+    exit_code = run(args, logger, client=RootedADBClient(), prompt=lambda _: "root protected paths summary")
+
+    assert exit_code == 0
+
+    zip_files = list((tmp_path / "output").glob("QA_bug_report_*.zip"))
+    assert len(zip_files) == 1
+
+    with ZipFile(zip_files[0]) as archive:
+        archive_names = set(archive.namelist())
+        assert "Device Info/protected_path_diagnostics.txt" in archive_names
+        metadata = json.loads(archive.read("metadata.json").decode("utf-8"))
+        result = next(item for item in metadata["artifacts"] if item["name"] == "protected_path_diagnostics")
+        assert result["status"] == "collected"
+
+
 def test_run_can_use_explicit_device_and_incident_summary_non_interactively(tmp_path):
     args = build_args(
         tmp_path,

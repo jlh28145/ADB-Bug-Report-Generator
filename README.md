@@ -156,8 +156,10 @@ The current implementation already makes some capability-aware decisions:
 - records root availability
 - records available shell commands
 - skips unsupported collectors with explicit reasons
+- prefers standard non-root diagnostics first and adds protected-path diagnostics only when root is available
 - falls back from `getprop` to `dumpsys` for device-info collection when needed
 - skips hardware-oriented battery diagnostics on emulator targets
+- uses older-shell fallbacks for selected collectors on legacy Android SDK levels
 - uses command fallback for network configuration collection when `ifconfig` is unavailable and `ip addr` is available
 
 Compatibility policy modes:

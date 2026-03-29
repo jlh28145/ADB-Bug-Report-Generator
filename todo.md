@@ -48,7 +48,7 @@ This repo should demonstrate:
 - [ ] Non-rooted devices
 
 ### Platform Support
-- [ ] Handle Android version differences where commands, paths, or permissions vary
+- [x] Handle Android version differences where commands, paths, or permissions vary
 - [ ] Prefer capability detection over hardcoded assumptions
 - [ ] Gracefully degrade when an artifact cannot be collected on a given device
 
@@ -204,21 +204,21 @@ output/
 ## Phase 5: Build Compatibility Fallbacks
 
 ### Fallback Categories
-- [ ] Android version differences
+- [x] Android version differences
 - [x] Rooted vs non-rooted devices
 - [x] Emulator vs physical device
 - [x] Missing commands or inaccessible paths
 
 ### Tasks
 - [x] Define preferred and fallback collectors for each artifact type
-- [ ] Prefer non-root strategies first where practical
-- [ ] Use root-enhanced collection only when available and justified
+- [x] Prefer non-root strategies first where practical
+- [x] Use root-enhanced collection only when available and justified
 - [x] Skip unsupported steps with explicit reasons
 - [x] Add compatibility notes to logs and metadata
 
 ### Example Fallbacks
 - [x] Use one device-info command when another is unavailable
-- [ ] Skip protected-path pulls on non-rooted devices
+- [x] Skip protected-path pulls on non-rooted devices
 - [x] Mark hardware-specific collectors as unsupported on emulators
 - [x] Adjust shell commands when Android version output differs
 
