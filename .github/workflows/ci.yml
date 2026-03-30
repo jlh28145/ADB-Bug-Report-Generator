@@ -9,7 +9,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     env:
-      PRE_COMMIT_HOME: ${{ runner.temp }}/pre-commit-cache
+      PRE_COMMIT_HOME: /tmp/pre-commit-cache
 
     steps:
       - name: Check out repository
