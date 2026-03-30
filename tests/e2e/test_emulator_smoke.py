@@ -8,10 +8,9 @@ from zipfile import ZipFile
 
 import pytest
 
-from tests import _bootstrap  # noqa: F401
 from adb_bug_report_generator.adb import ADBClient
 from adb_bug_report_generator.cli import run
-
+from tests import _bootstrap  # noqa: F401
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("ADB_RUN_EMULATOR_SMOKE") != "1",
@@ -22,7 +21,9 @@ pytestmark = pytest.mark.skipif(
 def test_emulator_smoke_collects_core_artifacts(tmp_path):
     serial = os.environ.get("ADB_EMULATOR_SERIAL")
     if not serial:
-        pytest.skip("Set ADB_EMULATOR_SERIAL to the target emulator serial, for example emulator-5554.")
+        pytest.skip(
+            "Set ADB_EMULATOR_SERIAL to the target emulator serial, for example emulator-5554."
+        )
 
     args = SimpleNamespace(
         device=serial,

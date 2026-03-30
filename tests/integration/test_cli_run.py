@@ -5,9 +5,9 @@ import logging
 from types import SimpleNamespace
 from zipfile import ZipFile
 
-from tests import _bootstrap  # noqa: F401
 from adb_bug_report_generator.cli import format_operator_error, main, run
 from adb_bug_report_generator.exceptions import AdbCommandError
+from tests import _bootstrap  # noqa: F401
 from tests.integration.fakes import (
     BootingEmulatorADBClient,
     FakeADBClient,
@@ -97,7 +97,11 @@ def test_run_still_creates_archive_when_one_pull_fails(tmp_path):
         metadata = json.loads(archive.read("metadata.json").decode("utf-8"))
         assert metadata["incident_summary"] == "partial failure summary"
         assert any(item["status"] == "failed" for item in metadata["artifacts"])
-        assert any("screen-002.mp4" in item["name"] for item in metadata["artifacts"] if item["status"] == "failed")
+        assert any(
+            "screen-002.mp4" in item["name"]
+            for item in metadata["artifacts"]
+            if item["status"] == "failed"
+        )
 
 
 def test_run_includes_bugreport_when_requested(tmp_path):
@@ -223,7 +227,9 @@ def test_run_uses_network_command_fallback_when_ifconfig_is_unavailable(tmp_path
 
     with ZipFile(zip_files[0]) as archive:
         metadata = json.loads(archive.read("metadata.json").decode("utf-8"))
-        network_result = next(item for item in metadata["artifacts"] if item["name"] == "network_config")
+        network_result = next(
+            item for item in metadata["artifacts"] if item["name"] == "network_config"
+        )
         assert network_result["status"] == "collected"
         assert "ip addr" in network_result["detail"]
 
@@ -248,7 +254,9 @@ def test_run_can_disable_logcat_and_device_info_collection(tmp_path):
         metadata = json.loads(archive.read("metadata.json").decode("utf-8"))
         assert metadata["selected_options"]["include_logcat"] is False
         assert metadata["selected_options"]["include_device_info"] is False
-        diagnostics_result = next(item for item in metadata["artifacts"] if item["name"] == "diagnostics")
+        diagnostics_result = next(
+            item for item in metadata["artifacts"] if item["name"] == "diagnostics"
+        )
         assert diagnostics_result["status"] == "skipped"
 
 
@@ -270,7 +278,9 @@ def test_run_collects_optional_package_diagnostics(tmp_path):
 
         metadata = json.loads(archive.read("metadata.json").decode("utf-8"))
         assert metadata["selected_options"]["package"] == "com.example.app"
-        package_result = next(item for item in metadata["artifacts"] if item["name"] == "package_diagnostics")
+        package_result = next(
+            item for item in metadata["artifacts"] if item["name"] == "package_diagnostics"
+        )
         assert package_result["status"] == "collected"
 
 
@@ -278,7 +288,9 @@ def test_run_skips_protected_path_diagnostics_when_root_is_unavailable(tmp_path)
     args = build_args(tmp_path)
     logger = logging.getLogger("test_cli_protected_paths_non_root")
 
-    exit_code = run(args, logger, client=FakeADBClient(), prompt=lambda _: "protected paths summary")
+    exit_code = run(
+        args, logger, client=FakeADBClient(), prompt=lambda _: "protected paths summary"
+    )
 
     assert exit_code == 0
 
@@ -287,7 +299,9 @@ def test_run_skips_protected_path_diagnostics_when_root_is_unavailable(tmp_path)
 
     with ZipFile(zip_files[0]) as archive:
         metadata = json.loads(archive.read("metadata.json").decode("utf-8"))
-        result = next(item for item in metadata["artifacts"] if item["name"] == "protected_path_diagnostics")
+        result = next(
+            item for item in metadata["artifacts"] if item["name"] == "protected_path_diagnostics"
+        )
         assert result["status"] == "skipped"
         assert "preferred non-root collection strategy" in result["detail"]
 
@@ -296,7 +310,9 @@ def test_run_collects_protected_path_diagnostics_when_root_is_available(tmp_path
     args = build_args(tmp_path)
     logger = logging.getLogger("test_cli_protected_paths_root")
 
-    exit_code = run(args, logger, client=RootedADBClient(), prompt=lambda _: "root protected paths summary")
+    exit_code = run(
+        args, logger, client=RootedADBClient(), prompt=lambda _: "root protected paths summary"
+    )
 
     assert exit_code == 0
 
@@ -307,7 +323,9 @@ def test_run_collects_protected_path_diagnostics_when_root_is_available(tmp_path
         archive_names = set(archive.namelist())
         assert "Device Info/protected_path_diagnostics.txt" in archive_names
         metadata = json.loads(archive.read("metadata.json").decode("utf-8"))
-        result = next(item for item in metadata["artifacts"] if item["name"] == "protected_path_diagnostics")
+        result = next(
+            item for item in metadata["artifacts"] if item["name"] == "protected_path_diagnostics"
+        )
         assert result["status"] == "collected"
 
 
@@ -349,7 +367,10 @@ def test_main_fails_in_non_interactive_mode_without_device_choice(tmp_path, capl
         )
 
     assert exit_code == 8
-    assert "Non-interactive mode requires exactly one connected device or an explicit --device value." in caplog.text
+    assert (
+        "Non-interactive mode requires exactly one connected device or an explicit --device value."
+        in caplog.text
+    )
 
 
 def test_run_returns_error_code_when_fail_on_partial_is_enabled(tmp_path):
@@ -423,7 +444,9 @@ def test_run_allows_emulator_in_permissive_compat_mode_without_explicit_flag(tmp
     assert exit_code == 0
 
 
-def test_main_fails_in_strict_compat_mode_when_requested_collectors_are_unsupported(tmp_path, caplog):
+def test_main_fails_in_strict_compat_mode_when_requested_collectors_are_unsupported(
+    tmp_path, caplog
+):
     args = build_args(
         tmp_path,
         compat_mode="strict",

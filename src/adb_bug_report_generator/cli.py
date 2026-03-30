@@ -1,13 +1,12 @@
 """CLI entry point."""
 
 import argparse
-import json
 import shlex
 
 from adb_bug_report_generator.adb import ADBClient
 from adb_bug_report_generator.collector import (
-    ArtifactResult,
     DIRECTORIES_TO_PULL,
+    ArtifactResult,
     CollectionOptions,
     build_recent_file_commands,
     build_run_summary,
@@ -28,9 +27,9 @@ from adb_bug_report_generator.exceptions import (
     CompatibilityConstraintError,
     DeviceAuthorizationError,
     DeviceBootIncompleteError,
-    NoConnectedDevicesError,
     DeviceUnavailableError,
     InvalidDeviceSelectionError,
+    NoConnectedDevicesError,
 )
 from adb_bug_report_generator.filesystem import (
     cleanup_report_dir,
@@ -44,7 +43,9 @@ from adb_bug_report_generator.logging_config import setup_logging
 
 def parse_args():
     """Parse CLI arguments."""
-    parser = argparse.ArgumentParser(description="Generate an incident report from an Android device.")
+    parser = argparse.ArgumentParser(
+        description="Generate an incident report from an Android device."
+    )
     parser.add_argument(
         "--device",
         help="Use a specific connected device serial instead of prompting.",
@@ -185,7 +186,10 @@ def run(args, logger, client=None, prompt=input, device_prompt=input):
 
     device_profile = detect_device_profile(client, selected_device)
     logger.info(
-        "Detected profile: model=%s manufacturer=%s android=%s sdk=%s emulator=%s boot_completed=%s rooted=%s",
+        (
+            "Detected profile: model=%s manufacturer=%s android=%s sdk=%s "
+            "emulator=%s boot_completed=%s rooted=%s"
+        ),
         device_profile.model,
         device_profile.manufacturer,
         device_profile.android_version,
@@ -197,7 +201,9 @@ def run(args, logger, client=None, prompt=input, device_prompt=input):
     log_specs = filter_log_specs(options)
     _validate_device_constraints(options, device_profile, log_specs)
 
-    app_directories = list(device_profile.accessible_paths) or get_application_directories(client, selected_device)
+    app_directories = list(device_profile.accessible_paths) or get_application_directories(
+        client, selected_device
+    )
     recent_file_commands = build_recent_file_commands(app_directories)
 
     if not app_directories:
@@ -209,7 +215,9 @@ def run(args, logger, client=None, prompt=input, device_prompt=input):
     if not options.simplified:
         for directory in DIRECTORIES_TO_PULL:
             artifact_results.extend(
-                pull_directory(client, directory, paths.report_dir, selected_device, output=logger.info)
+                pull_directory(
+                    client, directory, paths.report_dir, selected_device, output=logger.info
+                )
             )
 
     for directory, ls_command in recent_file_commands:
@@ -249,12 +257,12 @@ def run(args, logger, client=None, prompt=input, device_prompt=input):
     if options.include_bugreport and not options.simplified:
         artifact_results.append(
             collect_bugreport(
-            client,
-            paths.report_dir,
-            selected_device,
-            device_profile,
-            output=logger.info,
-        )
+                client,
+                paths.report_dir,
+                selected_device,
+                device_profile,
+                output=logger.info,
+            )
         )
     else:
         artifact_results.append(
@@ -335,13 +343,16 @@ def _resolve_selected_device(options, devices, device_prompt, logger):
     if options.device:
         if options.device not in devices:
             raise InvalidDeviceSelectionError(
-                f"Requested device '{options.device}' is not connected. Available devices: {', '.join(devices) or 'none'}."
+                "Requested device "
+                f"'{options.device}' is not connected. "
+                f"Available devices: {', '.join(devices) or 'none'}."
             )
         return options.device
 
     if options.non_interactive and len(devices) != 1:
         raise InvalidDeviceSelectionError(
-            "Non-interactive mode requires exactly one connected device or an explicit --device value."
+            "Non-interactive mode requires exactly one connected device "
+            "or an explicit --device value."
         )
 
     return select_device(devices, prompt=device_prompt, output=logger.info)
@@ -362,7 +373,8 @@ def _resolve_incident_summary(options, prompt, logger):
 def _validate_device_constraints(options, device_profile, log_specs):
     if device_profile.is_emulator and not device_profile.is_boot_completed:
         raise DeviceBootIncompleteError(
-            "Emulator target detected, but Android boot is not complete. Wait for the emulator to finish booting and try again."
+            "Emulator target detected, but Android boot is not complete. "
+            "Wait for the emulator to finish booting and try again."
         )
 
     if (
@@ -371,7 +383,8 @@ def _validate_device_constraints(options, device_profile, log_specs):
         and not options.allow_emulator
     ):
         raise CompatibilityConstraintError(
-            "Emulator target detected. Re-run with --allow-emulator to continue or use a physical device."
+            "Emulator target detected. Re-run with --allow-emulator to continue "
+            "or use a physical device."
         )
 
     if options.require_root and not device_profile.is_rooted:
@@ -388,7 +401,8 @@ def _validate_device_constraints(options, device_profile, log_specs):
 
     details = "; ".join(item["detail"] for item in unsupported_collectors)
     raise CompatibilityConstraintError(
-        "Strict compatibility mode rejected this run because one or more requested collectors are unsupported "
+        "Strict compatibility mode rejected this run because one or more "
+        "requested collectors are unsupported "
         f"on the selected device: {details}"
     )
 
@@ -401,17 +415,24 @@ def _list_device_records(client):
 
 
 def _resolve_ready_devices(device_records):
-    ready_devices = [record["serial"] for record in device_records if record.get("state") == "device"]
+    ready_devices = [
+        record["serial"] for record in device_records if record.get("state") == "device"
+    ]
     if ready_devices:
         return ready_devices
 
     if not device_records:
-        raise NoConnectedDevicesError("No devices connected. Please connect a device and try again.")
+        raise NoConnectedDevicesError(
+            "No devices connected. Please connect a device and try again."
+        )
 
-    unauthorized = [record["serial"] for record in device_records if record.get("state") == "unauthorized"]
+    unauthorized = [
+        record["serial"] for record in device_records if record.get("state") == "unauthorized"
+    ]
     if unauthorized:
         raise DeviceAuthorizationError(
-            "Connected device is unauthorized. Check the device for an ADB authorization prompt and accept it before retrying."
+            "Connected device is unauthorized. "
+            "Check the device for an ADB authorization prompt and accept it before retrying."
         )
 
     offline = [record["serial"] for record in device_records if record.get("state") == "offline"]
@@ -420,9 +441,7 @@ def _resolve_ready_devices(device_records):
             "Connected device is offline. Reconnect the device or restart ADB before retrying."
         )
 
-    raise DeviceUnavailableError(
-        "No connected devices are currently available for collection."
-    )
+    raise DeviceUnavailableError("No connected devices are currently available for collection.")
 
 
 def _coerce_device_record(record):

@@ -38,6 +38,9 @@ build/
 
 # Debugging artifacts
 debug.log
+.coverage
+coverage.xml
+pytest-results.xml
 .venv/
 __pycache__/
 .codex

@@ -1,7 +1,7 @@
 """Unit tests for device compatibility detection."""
 
-from tests import _bootstrap  # noqa: F401
 from adb_bug_report_generator.compatibility import detect_device_profile
+from tests import _bootstrap  # noqa: F401
 
 
 class FakeProfileClient:
@@ -22,7 +22,10 @@ class FakeProfileClient:
             "command -v ifconfig >/dev/null 2>&1 && echo available": "",
             "command -v ip >/dev/null 2>&1 && echo available": "available",
             "command -v top >/dev/null 2>&1 && echo available": "available",
-            "test -d '/sdcard/Android/data/org.mavlink.qgroundcontrol/files/PDW_GCS' && echo exists": "",
+            (
+                "test -d '/sdcard/Android/data/org.mavlink.qgroundcontrol/files/PDW_GCS' "
+                "&& echo exists"
+            ): "",
             "test -d '/sdcard/Android/data/ai.pdw.gcs/files/PDW_GCS' && echo exists": "exists",
         }
         return responses.get(command, "")
@@ -39,8 +42,6 @@ def test_detect_device_profile_collects_capabilities():
     assert profile.is_emulator is True
     assert profile.is_boot_completed is True
     assert profile.is_rooted is True
-    assert profile.accessible_paths == (
-        "/sdcard/Android/data/ai.pdw.gcs/files/PDW_GCS",
-    )
+    assert profile.accessible_paths == ("/sdcard/Android/data/ai.pdw.gcs/files/PDW_GCS",)
     assert profile.available_commands["getprop"] is True
     assert profile.available_commands["bugreport"] is False

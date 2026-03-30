@@ -1,1 +1,7 @@
+black
+build
+pre-commit
 pytest
+pytest-cov
+ruff
+setuptools>=68

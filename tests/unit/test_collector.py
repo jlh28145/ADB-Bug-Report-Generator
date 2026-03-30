@@ -4,7 +4,6 @@ from types import SimpleNamespace
 
 import pytest
 
-from tests import _bootstrap  # noqa: F401
 from adb_bug_report_generator.collector import (
     CollectionOptions,
     build_recent_file_commands,
@@ -17,6 +16,7 @@ from adb_bug_report_generator.collector import (
 )
 from adb_bug_report_generator.compatibility import DeviceProfile
 from adb_bug_report_generator.exceptions import DeviceSelectionError
+from tests import _bootstrap  # noqa: F401
 
 
 def test_select_device_returns_only_device():
@@ -56,9 +56,7 @@ def test_select_device_reprompts_until_valid_choice():
 
 
 def test_build_recent_file_commands_includes_application_logs():
-    commands = build_recent_file_commands(
-        ["/sdcard/Android/data/example/files/PDW_GCS"]
-    )
+    commands = build_recent_file_commands(["/sdcard/Android/data/example/files/PDW_GCS"])
 
     assert (
         "/sdcard/Android/data/example/files/PDW_GCS/Logs/ConsoleLogs",
@@ -175,7 +173,9 @@ def test_collect_logs_falls_back_to_dumpsys_for_device_info(tmp_path):
         "device-1234",
         SimpleNamespace(device_info_dir=tmp_path),
         profile,
-        log_specs=(("device_info", "device_info.txt", ("getprop", "dumpsys window"), "getprop_or_dumpsys"),),
+        log_specs=(
+            ("device_info", "device_info.txt", ("getprop", "dumpsys window"), "getprop_or_dumpsys"),
+        ),
     )
 
     assert results[0].status == "collected"
@@ -255,7 +255,9 @@ def test_collect_protected_path_diagnostics_uses_root_enhanced_commands(tmp_path
     class FakeClient:
         def shell_text(self, command, device=None):
             responses = {
-                "su -c 'ls -ld /data/anr /data/tombstones 2>/dev/null'": "/data/anr\n/data/tombstones",
+                (
+                    "su -c 'ls -ld /data/anr /data/tombstones 2>/dev/null'"
+                ): "/data/anr\n/data/tombstones",
                 "su -c 'ls -t /data/anr 2>/dev/null | head -n 5'": "traces.txt",
                 "su -c 'ls -t /data/tombstones 2>/dev/null | head -n 5'": "tombstone_01",
             }

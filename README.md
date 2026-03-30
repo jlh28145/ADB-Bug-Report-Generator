@@ -205,6 +205,29 @@ Supporting test docs:
 - `tests/e2e/README.md`
 - `tests/e2e/manual_validation_checklist.md`
 
+## Quality Tooling
+Local quality commands:
+
+```bash
+.venv/bin/ruff check .
+.venv/bin/black --check src tests generate_bug_report.py
+PRE_COMMIT_HOME=/tmp/pre-commit-cache .venv/bin/pre-commit run --all-files
+.venv/bin/pytest --cov=adb_bug_report_generator --cov-report=term-missing --cov-report=xml
+.venv/bin/python -m build --no-isolation
+```
+
+Current quality gates:
+- Ruff linting passes
+- Black formatting checks pass
+- pytest produces JUnit XML and coverage XML artifacts
+- coverage is enforced with a minimum threshold of 70%
+- package build and import validation run from CI
+
+CI/CD is implemented with GitHub Actions in `.github/workflows/ci.yml` and currently runs on:
+- `push`
+- `pull_request`
+- `workflow_dispatch`
+
 ## Error Handling
 Current operator-facing failure handling includes:
 - missing `adb`

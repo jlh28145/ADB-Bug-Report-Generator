@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    env:
+      PRE_COMMIT_HOME: ${{ runner.temp }}/pre-commit-cache
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install -e .
+
+      - name: Run Ruff
+        run: ruff check .
+
+      - name: Run Black check
+        run: black --check .
+
+      - name: Run pre-commit hooks
+        run: pre-commit run --all-files
+
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=adb_bug_report_generator --cov-report=term-missing --cov-report=xml
+
+      - name: Build package
+        run: python -m build --no-isolation
+
+      - name: Verify packaged import
+        run: |
+          python -m pip install dist/*.whl
+          python -c "import adb_bug_report_generator"
+
+      - name: Publish test summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import os
+          import pathlib
+          import xml.etree.ElementTree as ET
+
+          junit_path = pathlib.Path("pytest-results.xml")
+          summary_target = os.environ.get("GITHUB_STEP_SUMMARY")
+
+          if junit_path.exists() and summary_target:
+              root = ET.parse(junit_path).getroot()
+              suite = root if root.tag == "testsuite" else root.find("testsuite")
+              if suite is not None:
+                  tests = int(suite.attrib.get("tests", 0))
+                  failures = int(suite.attrib.get("failures", 0))
+                  errors = int(suite.attrib.get("errors", 0))
+                  skipped = int(suite.attrib.get("skipped", 0))
+                  summary_lines = [
+                      "## Pytest Results",
+                      "",
+                      f"- Tests: {tests}",
+                      f"- Failures: {failures}",
+                      f"- Errors: {errors}",
+                      f"- Skipped: {skipped}",
+                  ]
+                  with open(summary_target, "a", encoding="utf-8") as handle:
+                      handle.write("\n".join(summary_lines) + "\n")
+          PY
+
+      - name: Upload coverage and test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-artifacts
+          path: |
+            pytest-results.xml
+            coverage.xml
+            dist/
+
+  emulator-smoke:
+    if: vars.ADB_RUN_EMULATOR_SMOKE == '1'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Explain emulator smoke gating
+        run: |
+          echo "Emulator smoke coverage is intentionally gated."
+          echo "Provision an emulator-capable workflow before enabling this job."

@@ -25,7 +25,10 @@ class FakeADBClient:
 
     def shell_text(self, command, device=None):
         responses = {
-            "test -d '/sdcard/Android/data/org.mavlink.qgroundcontrol/files/PDW_GCS' && echo exists": "",
+            (
+                "test -d '/sdcard/Android/data/org.mavlink.qgroundcontrol/files/PDW_GCS' "
+                "&& echo exists"
+            ): "",
             "test -d '/sdcard/Android/data/ai.pdw.gcs/files/PDW_GCS' && echo exists": "",
             "getprop ro.product.model": "Pixel 8",
             "getprop ro.product.manufacturer": "Google",
@@ -115,7 +118,10 @@ class MissingAdbClient(FakeADBClient):
         from adb_bug_report_generator.exceptions import AdbCommandError
 
         raise AdbCommandError(
-            "ADB executable not found. Install Android Platform Tools and ensure 'adb' is available on your PATH.",
+            (
+                "ADB executable not found. Install Android Platform Tools and ensure 'adb' "
+                "is available on your PATH."
+            ),
             ["adb", "devices"],
             exit_code=4,
         )
