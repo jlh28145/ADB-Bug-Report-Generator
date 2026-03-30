@@ -315,8 +315,8 @@ Functions:
 ## Phase 9: Testing Strategy and Coverage
 
 ### Tools
-- [ ] pytest
-- [ ] mock / monkeypatch
+- [x] pytest
+- [x] mock / monkeypatch
 
 ### Test Pyramid
 - Unit tests should be the majority of coverage
@@ -324,39 +324,89 @@ Functions:
 - End-to-end tests should stay small and focus on emulator and selected real-device smoke coverage
 
 ### Coverage Targets
-- [ ] CLI behavior
-- [ ] ADB wrapper
-- [ ] filesystem handling
-- [ ] collector logic
-- [ ] failure handling paths
-- [ ] partial-success behavior
-- [ ] metadata generation
-- [ ] compatibility decisions
-- [ ] emulator-targeted flows
-- [ ] rooted vs non-rooted decision paths
+- [x] CLI behavior
+- [x] ADB wrapper
+- [x] filesystem handling
+- [x] collector logic
+- [x] failure handling paths
+- [x] partial-success behavior
+- [x] metadata generation
+- [x] compatibility decisions
+- [x] emulator-targeted flows
+- [x] rooted vs non-rooted decision paths
 
 ### Goal
 - [ ] 70–85% meaningful coverage
 
 ### Test Layers
-- [ ] Unit tests for decision logic and file handling
-- [ ] Mocked integration-style tests for ADB interactions
-- [ ] Emulator smoke tests for supported end-to-end flows
-- [ ] Manual validation checklist for real-device scenarios
+- [x] Unit tests for decision logic and file handling
+- [x] Mocked integration-style tests for ADB interactions
+- [x] Emulator smoke tests for supported end-to-end flows
+- [x] Manual validation checklist for real-device scenarios
 
 ### Emulator Testing
-- [ ] Document a supported Android emulator setup for local validation
-- [ ] Add a minimal smoke test flow against an emulator
-- [ ] Validate device detection, logcat capture, device info capture, and output packaging on emulator targets
-- [ ] Note which collectors require physical hardware and which are emulator-safe
+- [x] Document a supported Android emulator setup for local validation
+- [x] Add a minimal smoke test flow against an emulator
+- [x] Validate device detection, logcat capture, device info capture, and output packaging on emulator targets
+- [x] Note which collectors require physical hardware and which are emulator-safe
 
 ### Real Device Testing
 - [ ] Validate at least one non-rooted physical device path
 - [ ] Validate rooted-device enhanced flows if hardware is available
 - [ ] Record differences observed across Android versions
 
+Recommended preflight commands:
+
+```bash
+adb devices
+adb -s <serial> shell getprop ro.build.version.release
+adb -s <serial> shell getprop ro.build.version.sdk
+adb -s <serial> shell getprop ro.product.model
+```
+
+Non-rooted physical device validation:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
+  --device <serial> \
+  --incident-summary "manual non-root validation" \
+  --non-interactive \
+  --output-dir output/manual-non-root
+```
+
+Optional package diagnostics on a real device:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
+  --device <serial> \
+  --package <package.name> \
+  --incident-summary "manual package diagnostics validation" \
+  --non-interactive \
+  --output-dir output/manual-package
+```
+
+Rooted-device validation:
+
+```bash
+adb -s <serial> shell su -c 'id'
+
+PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
+  --device <serial> \
+  --require-root \
+  --incident-summary "manual rooted validation" \
+  --non-interactive \
+  --output-dir output/manual-root
+```
+
+Capture notes after each run:
+- Android version and SDK level
+- device model/manufacturer
+- rooted vs non-rooted behavior differences
+- collectors skipped due to device-specific restrictions
+- any fallback commands or protected-path diagnostics observed
+
 ### Senior SDET Signal
-- [ ] Shows layered, pragmatic automation strategy
+- [x] Shows layered, pragmatic automation strategy
 
 ---
 
