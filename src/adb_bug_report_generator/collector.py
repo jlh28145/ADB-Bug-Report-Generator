@@ -420,7 +420,7 @@ def evaluate_requested_collectors(options, device_profile, log_specs):
             unsupported.append(
                 {
                     "name": log_name,
-                    "detail": f"{log_name} requires { _describe_requirement(requirement) }.",
+                    "detail": f"{log_name} requires {_describe_requirement(requirement)}.",
                 }
             )
 
