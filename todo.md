@@ -437,10 +437,12 @@ Capture notes after each run:
 ### Trigger
 - [x] push
 - [x] pull_request
+- [x] workflow_dispatch
 
 pytest
 ruff check .  
 black --check .  
+mypy  
 
 ---
 
