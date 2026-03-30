@@ -355,6 +355,56 @@ Functions:
 - [ ] Validate rooted-device enhanced flows if hardware is available
 - [ ] Record differences observed across Android versions
 
+Recommended preflight commands:
+
+```bash
+adb devices
+adb -s <serial> shell getprop ro.build.version.release
+adb -s <serial> shell getprop ro.build.version.sdk
+adb -s <serial> shell getprop ro.product.model
+```
+
+Non-rooted physical device validation:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
+  --device <serial> \
+  --incident-summary "manual non-root validation" \
+  --non-interactive \
+  --output-dir output/manual-non-root
+```
+
+Optional package diagnostics on a real device:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
+  --device <serial> \
+  --package <package.name> \
+  --incident-summary "manual package diagnostics validation" \
+  --non-interactive \
+  --output-dir output/manual-package
+```
+
+Rooted-device validation:
+
+```bash
+adb -s <serial> shell su -c 'id'
+
+PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
+  --device <serial> \
+  --require-root \
+  --incident-summary "manual rooted validation" \
+  --non-interactive \
+  --output-dir output/manual-root
+```
+
+Capture notes after each run:
+- Android version and SDK level
+- device model/manufacturer
+- rooted vs non-rooted behavior differences
+- collectors skipped due to device-specific restrictions
+- any fallback commands or protected-path diagnostics observed
+
 ### Senior SDET Signal
 - [x] Shows layered, pragmatic automation strategy
 
