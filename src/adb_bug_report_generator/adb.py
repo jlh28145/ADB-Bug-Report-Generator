@@ -1,9 +1,9 @@
 """ADB client abstraction."""
 
-from dataclasses import dataclass
-from pathlib import Path
 import re
 import subprocess
+from dataclasses import dataclass
+from pathlib import Path
 
 from adb_bug_report_generator.exceptions import (
     AdbCommandError,
@@ -13,7 +13,6 @@ from adb_bug_report_generator.exceptions import (
     InvalidDeviceSelectionError,
     NoConnectedDevicesError,
 )
-
 
 ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
 RETRYABLE_STDERR_PATTERNS = (
@@ -77,12 +76,16 @@ class ADBClient:
             detect_root,
         )
 
-        model = self.run_shell_command("getprop ro.product.model", device=serial).stdout or "unknown"
+        model = (
+            self.run_shell_command("getprop ro.product.model", device=serial).stdout or "unknown"
+        )
         manufacturer = (
-            self.run_shell_command("getprop ro.product.manufacturer", device=serial).stdout or "unknown"
+            self.run_shell_command("getprop ro.product.manufacturer", device=serial).stdout
+            or "unknown"
         )
         android_version = (
-            self.run_shell_command("getprop ro.build.version.release", device=serial).stdout or "unknown"
+            self.run_shell_command("getprop ro.build.version.release", device=serial).stdout
+            or "unknown"
         )
         sdk_level = _parse_int(
             self.run_shell_command("getprop ro.build.version.sdk", device=serial).stdout
@@ -185,7 +188,10 @@ class ADBClient:
                 )
             except FileNotFoundError as exc:
                 raise AdbCommandError(
-                    "ADB executable not found. Install Android Platform Tools and ensure 'adb' is available on your PATH.",
+                    (
+                        "ADB executable not found. Install Android Platform Tools and ensure 'adb' "
+                        "is available on your PATH."
+                    ),
                     args,
                     exit_code=4,
                 ) from exc
@@ -214,7 +220,8 @@ class ADBClient:
 
         if "unauthorized" in normalized:
             error = DeviceAuthorizationError(
-                "Connected device is unauthorized. Check the device for an ADB authorization prompt and accept it before retrying."
+                "Connected device is unauthorized. "
+                "Check the device for an ADB authorization prompt and accept it before retrying."
             )
             error.command = args
             error.stderr = stderr
@@ -230,14 +237,17 @@ class ADBClient:
 
         if "more than one device/emulator" in normalized:
             error = InvalidDeviceSelectionError(
-                "ADB requires an explicit device selection because multiple devices/emulators are connected."
+                "ADB requires an explicit device selection because multiple devices/emulators "
+                "are connected."
             )
             error.command = args
             error.stderr = stderr
             return error
 
         if "no devices/emulators found" in normalized:
-            error = NoConnectedDevicesError("No devices connected. Please connect a device and try again.")
+            error = NoConnectedDevicesError(
+                "No devices connected. Please connect a device and try again."
+            )
             error.command = args
             error.stderr = stderr
             return error

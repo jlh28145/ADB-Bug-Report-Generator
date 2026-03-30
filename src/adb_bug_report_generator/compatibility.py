@@ -4,7 +4,6 @@ from dataclasses import asdict, dataclass
 
 from adb_bug_report_generator.collector import APPLICATION_DIRECTORIES
 
-
 KNOWN_COMMANDS = (
     "getprop",
     "dumpsys",
@@ -101,5 +100,7 @@ def detect_accessible_paths(client, serial):
 
 
 def command_exists(client, command, serial):
-    result = client.shell_text(f"command -v {command} >/dev/null 2>&1 && echo available", device=serial)
+    result = client.shell_text(
+        f"command -v {command} >/dev/null 2>&1 && echo available", device=serial
+    )
     return result == "available"

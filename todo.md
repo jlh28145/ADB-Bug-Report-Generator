@@ -413,34 +413,36 @@ Capture notes after each run:
 ## Phase 10: Quality Tooling and CI/CD
 
 ### Add
-- [ ] ruff
-- [ ] black
-- [ ] pytest
-- [ ] pre-commit
-- [ ] coverage reporting
-- [ ] optional mypy
+- [x] ruff
+- [x] black
+- [x] pytest
+- [x] pre-commit
+- [x] coverage reporting
+- [x] optional mypy
 
 ### Quality Gates
-- [ ] tests must pass
-- [ ] lint must pass
-- [ ] minimum coverage threshold
-- [ ] packaging/import checks must pass
+- [x] tests must pass
+- [x] lint must pass
+- [x] minimum coverage threshold
+- [x] packaging/import checks must pass
 
 ### GitHub Actions
-- [ ] install dependencies
-- [ ] run lint
-- [ ] run tests
-- [ ] upload coverage artifacts
-- [ ] publish test results
-- [ ] optionally run emulator smoke tests when the environment supports it
+- [x] install dependencies
+- [x] run lint
+- [x] run tests
+- [x] upload coverage artifacts
+- [x] publish test results
+- [x] optionally run emulator smoke tests when the environment supports it
 
 ### Trigger
-- [ ] push
-- [ ] pull_request
+- [x] push
+- [x] pull_request
+- [x] workflow_dispatch
 
 pytest
 ruff check .  
 black --check .  
+mypy  
 
 ---
 

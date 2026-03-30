@@ -5,7 +5,6 @@ from pathlib import Path
 
 from adb_bug_report_generator.exceptions import NoConnectedDevicesError
 
-
 DIRECTORIES_TO_PULL = [
     "/sdcard/Pictures",
     "/sdcard/Movies",
@@ -109,7 +108,9 @@ def select_device(devices, prompt=input, output=None):
     output = output or _noop
 
     if not devices:
-        raise NoConnectedDevicesError("No devices connected. Please connect a device and try again.")
+        raise NoConnectedDevicesError(
+            "No devices connected. Please connect a device and try again."
+        )
 
     if len(devices) == 1:
         output(f"Using the only connected device: {devices[0]}")
@@ -150,9 +151,7 @@ def build_recent_file_commands(app_directories):
     ]
 
     for app_dir in app_directories:
-        commands.append(
-            (f"{app_dir}/Logs/ConsoleLogs", f"ls -t {app_dir}/Logs/ConsoleLogs")
-        )
+        commands.append((f"{app_dir}/Logs/ConsoleLogs", f"ls -t {app_dir}/Logs/ConsoleLogs"))
 
     return commands
 
@@ -199,7 +198,9 @@ def pull_directory(client, directory, dest_dir, device, output=None):
     return results
 
 
-def pull_recent_files(client, directory, ls_command, dest_dir, num_files, device, report_paths, output=None):
+def pull_recent_files(
+    client, directory, ls_command, dest_dir, num_files, device, report_paths, output=None
+):
     """Pull the most recent files from a specific device directory."""
     output = output or _noop
     output(f"Getting {num_files} most recent file(s) from {directory} on device {device}")
@@ -249,7 +250,10 @@ def collect_bugreport(client, dest_dir, device, device_profile, output=None):
     """Collect a bugreport zip."""
     output = output or _noop
     if not _supports_requirement(device_profile, "bugreport"):
-        detail = "Skipped bugreport collection because the required command is unavailable on this device."
+        detail = (
+            "Skipped bugreport collection because the required command "
+            "is unavailable on this device."
+        )
         output(detail)
         return ArtifactResult(name="bugreport", status="skipped", detail=detail)
 
@@ -269,15 +273,21 @@ def collect_logs(client, device, report_paths, device_profile, output=None, log_
     """Collect text-based diagnostic artifacts using compatibility-aware fallbacks."""
     output = output or _noop
     results = []
-    for log_name, filename, commands, requirement in resolve_log_specs_for_profile(device_profile, log_specs):
+    for log_name, filename, commands, requirement in resolve_log_specs_for_profile(
+        device_profile, log_specs
+    ):
         compatibility_reason = _compatibility_skip_reason(log_name, device_profile)
         if compatibility_reason:
             output(compatibility_reason)
-            results.append(ArtifactResult(name=log_name, status="skipped", detail=compatibility_reason))
+            results.append(
+                ArtifactResult(name=log_name, status="skipped", detail=compatibility_reason)
+            )
             continue
 
         if not _supports_requirement(device_profile, requirement):
-            detail = f"Skipped {log_name} because the required command is unavailable on this device."
+            detail = (
+                f"Skipped {log_name} because the required command is unavailable on this device."
+            )
             output(detail)
             results.append(ArtifactResult(name=log_name, status="skipped", detail=detail))
             continue
@@ -374,7 +384,9 @@ def collect_protected_path_diagnostics(client, device, report_paths, device_prof
             sections.append(f"## {title}\n{result}")
 
     if not sections:
-        detail = "No protected-path diagnostics were returned, even though root access is available."
+        detail = (
+            "No protected-path diagnostics were returned, even though root access is available."
+        )
         output(detail)
         return ArtifactResult(name="protected_path_diagnostics", status="skipped", detail=detail)
 
@@ -385,7 +397,10 @@ def collect_protected_path_diagnostics(client, device, report_paths, device_prof
         name="protected_path_diagnostics",
         status="collected",
         path=str(diagnostics_path),
-        detail="Collected protected-path diagnostics using root-enhanced commands after standard collection.",
+        detail=(
+            "Collected protected-path diagnostics using root-enhanced commands "
+            "after standard collection."
+        ),
     )
 
 
@@ -393,7 +408,9 @@ def evaluate_requested_collectors(options, device_profile, log_specs):
     """Summarize requested collector support for compatibility policy decisions."""
     unsupported = []
 
-    for log_name, _filename, _commands, requirement in resolve_log_specs_for_profile(device_profile, log_specs):
+    for log_name, _filename, _commands, requirement in resolve_log_specs_for_profile(
+        device_profile, log_specs
+    ):
         compatibility_reason = _compatibility_skip_reason(log_name, device_profile)
         if compatibility_reason:
             unsupported.append({"name": log_name, "detail": compatibility_reason})
@@ -403,7 +420,7 @@ def evaluate_requested_collectors(options, device_profile, log_specs):
             unsupported.append(
                 {
                     "name": log_name,
-                    "detail": f"{log_name} requires { _describe_requirement(requirement) }.",
+                    "detail": f"{log_name} requires {_describe_requirement(requirement)}.",
                 }
             )
 
@@ -489,5 +506,7 @@ def _describe_requirement(requirement):
 
 def _compatibility_skip_reason(log_name, device_profile):
     if log_name == "battery_info" and device_profile.is_emulator:
-        return "Skipped battery_info because it is not a reliable hardware signal on emulator targets."
+        return (
+            "Skipped battery_info because it is not a reliable hardware signal on emulator targets."
+        )
     return ""

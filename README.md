@@ -36,7 +36,7 @@ The current implementation can:
   - standardized artifact filenames
 
 ## Prerequisites
-1. Install Python 3.9 or newer.
+1. Install Python 3.10 or newer.
 2. Install Android Debug Bridge (`adb`) and make sure it is on your `PATH`.
 3. Enable Developer Options and USB debugging on the Android device.
 4. Verify device connectivity:
@@ -200,10 +200,43 @@ ADB_EMULATOR_SERIAL=emulator-5554 \
 .venv/bin/python -m pytest tests/e2e/test_emulator_smoke.py
 ```
 
+GitHub Actions emulator smoke behavior:
+- runs automatically on `push` to `main`
+- can also be launched manually with `workflow_dispatch` from any branch
+
 Supporting test docs:
 - `tests/integration/README.md`
 - `tests/e2e/README.md`
 - `tests/e2e/manual_validation_checklist.md`
+
+## Quality Tooling
+Local quality commands:
+
+```bash
+.venv/bin/ruff check .
+.venv/bin/black --check src tests generate_bug_report.py
+PRE_COMMIT_HOME=/tmp/pre-commit-cache .venv/bin/pre-commit run --all-files
+.venv/bin/pytest --cov=adb_bug_report_generator --cov-report=term-missing --cov-report=xml
+.venv/bin/python -m build --no-isolation
+.venv/bin/mypy src/adb_bug_report_generator
+```
+
+Current quality gates:
+- Ruff linting passes
+- Black formatting checks pass
+- pytest produces JUnit XML and coverage XML artifacts
+- coverage is enforced with a minimum threshold of 70%
+- package build and import validation run from CI
+- optional static type checking is available through mypy
+
+CI/CD is implemented with GitHub Actions in `.github/workflows/ci.yml` and currently runs on:
+- `push`
+- `pull_request`
+- `workflow_dispatch`
+
+Pipeline jobs:
+- `quality`: lint, pre-commit, tests, coverage, build, and packaged import validation
+- `emulator-smoke`: Android emulator-backed smoke coverage on `main` pushes and manual dispatch
 
 ## Error Handling
 Current operator-facing failure handling includes:

@@ -32,6 +32,10 @@ The smoke test validates:
 - device-info capture
 - output packaging into the final zip archive
 
+CI behavior:
+- runs automatically on `push` to `main`
+- can be triggered manually from any branch with `workflow_dispatch`
+
 ## Supported Local Emulator Setup
 
 Recommended baseline:

@@ -4,17 +4,19 @@ import subprocess
 
 import pytest
 
-from tests import _bootstrap  # noqa: F401
 from adb_bug_report_generator.adb import ADBClient, DeviceRecord
 from adb_bug_report_generator.exceptions import (
     DeviceAuthorizationError,
     DeviceUnavailableError,
     InvalidDeviceSelectionError,
 )
+from tests import _bootstrap  # noqa: F401
 
 
 def _completed_process(args, stdout="", stderr="", returncode=0):
-    return subprocess.CompletedProcess(args=args, returncode=returncode, stdout=stdout, stderr=stderr)
+    return subprocess.CompletedProcess(
+        args=args, returncode=returncode, stdout=stdout, stderr=stderr
+    )
 
 
 def test_list_device_records_returns_structured_records(monkeypatch):
@@ -48,7 +50,9 @@ def test_run_retries_transient_offline_error(monkeypatch):
                 cmd=["adb", "devices"],
                 stderr="error: device offline",
             )
-        return _completed_process(["adb", "devices"], stdout="List of devices attached\nemulator-5554\tdevice\n")
+        return _completed_process(
+            ["adb", "devices"], stdout="List of devices attached\nemulator-5554\tdevice\n"
+        )
 
     monkeypatch.setattr(subprocess, "run", fake_run)
 
@@ -124,7 +128,10 @@ class FakeProfileClient(ADBClient):
             "command -v ifconfig >/dev/null 2>&1 && echo available": "",
             "command -v ip >/dev/null 2>&1 && echo available": "available",
             "command -v top >/dev/null 2>&1 && echo available": "available",
-            "test -d '/sdcard/Android/data/org.mavlink.qgroundcontrol/files/PDW_GCS' && echo exists": "",
+            (
+                "test -d '/sdcard/Android/data/org.mavlink.qgroundcontrol/files/PDW_GCS' "
+                "&& echo exists"
+            ): "",
             "test -d '/sdcard/Android/data/ai.pdw.gcs/files/PDW_GCS' && echo exists": "exists",
         }
         from adb_bug_report_generator.adb import ADBCommandResult

@@ -2,9 +2,8 @@
 
 """Compatibility entry point for the packaged CLI."""
 
-from pathlib import Path
 import sys
-
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 SRC_DIR = PROJECT_ROOT / "src"
@@ -12,8 +11,7 @@ SRC_DIR = PROJECT_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from adb_bug_report_generator.cli import main
-
+from adb_bug_report_generator.cli import main  # noqa: E402
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -7,14 +7,23 @@ name = "adb-bug-report-generator"
 version = "0.1.0"
 description = "CLI-driven Android diagnostics utility for collecting ADB troubleshooting artifacts."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
   { name = "Vinson" }
 ]
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = [
+  "black",
+  "build",
+  "mypy",
+  "pre-commit",
+  "pytest",
+  "pytest-cov",
+  "ruff",
+  "setuptools>=68",
+]
 
 [project.scripts]
 adb-bug-report-generator = "adb_bug_report_generator.cli:main"
@@ -27,3 +36,39 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = [
+  "--strict-markers",
+  "--junitxml=pytest-results.xml",
+]
+markers = [
+  "e2e: end-to-end coverage that may require emulator or device setup",
+]
+
+[tool.coverage.run]
+source = ["adb_bug_report_generator"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 70
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "F",
+  "I",
+]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["src/adb_bug_report_generator"]
+warn_unused_configs = true
