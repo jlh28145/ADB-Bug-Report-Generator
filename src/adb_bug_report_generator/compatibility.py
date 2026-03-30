@@ -34,6 +34,9 @@ class DeviceProfile:
 
 def detect_device_profile(client, serial):
     """Collect a basic device profile using ADB shell commands."""
+    if hasattr(client, "get_device_profile"):
+        return client.get_device_profile(serial)
+
     model = _shell_or_unknown(client, "getprop ro.product.model", serial)
     manufacturer = _shell_or_unknown(client, "getprop ro.product.manufacturer", serial)
     android_version = _shell_or_unknown(client, "getprop ro.build.version.release", serial)
@@ -41,10 +44,10 @@ def detect_device_profile(client, serial):
 
     emulator_property = client.shell_text("getprop ro.kernel.qemu", device=serial)
     is_emulator = serial.startswith("emulator-") or emulator_property == "1"
-    is_boot_completed = _detect_boot_completed(client, serial)
-    is_rooted = _detect_root(client, serial)
-    accessible_paths = tuple(_detect_accessible_paths(client, serial))
-    available_commands = {name: _command_exists(client, name, serial) for name in KNOWN_COMMANDS}
+    is_boot_completed = detect_boot_completed(client, serial)
+    is_rooted = detect_root(client, serial)
+    accessible_paths = tuple(detect_accessible_paths(client, serial))
+    available_commands = {name: command_exists(client, name, serial) for name in KNOWN_COMMANDS}
 
     return DeviceProfile(
         serial=serial,
@@ -77,18 +80,18 @@ def _parse_int(value):
         return None
 
 
-def _detect_root(client, serial):
+def detect_root(client, serial):
     result = client.shell_text("command -v su >/dev/null 2>&1 && echo available", device=serial)
     return result == "available"
 
 
-def _detect_boot_completed(client, serial):
+def detect_boot_completed(client, serial):
     sys_boot = client.shell_text("getprop sys.boot_completed", device=serial)
     dev_boot = client.shell_text("getprop dev.bootcomplete", device=serial)
     return sys_boot == "1" or dev_boot == "1"
 
 
-def _detect_accessible_paths(client, serial):
+def detect_accessible_paths(client, serial):
     paths = []
     for path in APPLICATION_DIRECTORIES:
         exists = client.shell_text(f"test -d '{path}' && echo exists", device=serial)
@@ -97,6 +100,6 @@ def _detect_accessible_paths(client, serial):
     return paths
 
 
-def _command_exists(client, command, serial):
+def command_exists(client, command, serial):
     result = client.shell_text(f"command -v {command} >/dev/null 2>&1 && echo available", device=serial)
     return result == "available"

@@ -40,3 +40,4 @@ build/
 debug.log
 .venv/
 __pycache__/
+.codex
