@@ -418,7 +418,7 @@ Capture notes after each run:
 - [x] pytest
 - [x] pre-commit
 - [x] coverage reporting
-- [ ] optional mypy
+- [x] optional mypy
 
 ### Quality Gates
 - [x] tests must pass

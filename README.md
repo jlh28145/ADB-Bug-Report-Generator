@@ -36,7 +36,7 @@ The current implementation can:
   - standardized artifact filenames
 
 ## Prerequisites
-1. Install Python 3.9 or newer.
+1. Install Python 3.10 or newer.
 2. Install Android Debug Bridge (`adb`) and make sure it is on your `PATH`.
 3. Enable Developer Options and USB debugging on the Android device.
 4. Verify device connectivity:
@@ -214,6 +214,7 @@ Local quality commands:
 PRE_COMMIT_HOME=/tmp/pre-commit-cache .venv/bin/pre-commit run --all-files
 .venv/bin/pytest --cov=adb_bug_report_generator --cov-report=term-missing --cov-report=xml
 .venv/bin/python -m build --no-isolation
+.venv/bin/mypy src/adb_bug_report_generator
 ```
 
 Current quality gates:
@@ -222,6 +223,7 @@ Current quality gates:
 - pytest produces JUnit XML and coverage XML artifacts
 - coverage is enforced with a minimum threshold of 70%
 - package build and import validation run from CI
+- optional static type checking is available through mypy
 
 CI/CD is implemented with GitHub Actions in `.github/workflows/ci.yml` and currently runs on:
 - `push`
