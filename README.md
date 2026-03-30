@@ -173,7 +173,7 @@ This is the foundation for broader Android-version and root-aware fallback behav
 This repo follows the QA testing pyramid:
 - unit tests in `tests/unit/`
 - integration tests in `tests/integration/`
-- end-to-end placeholders in `tests/e2e/`
+- opt-in end-to-end smoke coverage in `tests/e2e/`
 
 Current local test command:
 
@@ -191,6 +191,19 @@ The current suite covers:
 - operator-facing failure messages
 - fallback command behavior
 - optional package diagnostics
+
+Opt-in emulator smoke coverage:
+
+```bash
+ADB_RUN_EMULATOR_SMOKE=1 \
+ADB_EMULATOR_SERIAL=emulator-5554 \
+.venv/bin/python -m pytest tests/e2e/test_emulator_smoke.py
+```
+
+Supporting test docs:
+- `tests/integration/README.md`
+- `tests/e2e/README.md`
+- `tests/e2e/manual_validation_checklist.md`
 
 ## Error Handling
 Current operator-facing failure handling includes:
