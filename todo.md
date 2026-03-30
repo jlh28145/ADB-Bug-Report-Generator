@@ -290,25 +290,25 @@ python -m adb_bug_report_generator \
 ### Create ADB Client
 
 Functions:
-- [ ] list_devices()
-- [ ] get_device_profile()
-- [ ] collect_bugreport()
-- [ ] collect_logcat()
-- [ ] get_device_info()
-- [ ] pull_file()
-- [ ] pull_directory()
-- [ ] run_shell_command()
+- [x] list_devices()
+- [x] get_device_profile()
+- [x] collect_bugreport()
+- [x] collect_logcat()
+- [x] get_device_info()
+- [x] pull_file()
+- [x] pull_directory()
+- [x] run_shell_command()
 
 ### Requirements
-- [ ] No scattered subprocess calls
-- [ ] Structured return values
-- [ ] Timeout support
-- [ ] Retry strategy where appropriate
-- [ ] Clear exception mapping for common ADB failures
-- [ ] Device targeting that works for both physical devices and emulators
+- [x] No scattered subprocess calls
+- [x] Structured return values
+- [x] Timeout support
+- [x] Retry strategy where appropriate
+- [x] Clear exception mapping for common ADB failures
+- [x] Device targeting that works for both physical devices and emulators
 
 ### Senior SDET Signal
-- [ ] Abstraction quality and testable automation infrastructure
+- [x] Abstraction quality and testable automation infrastructure
 
 ---
 

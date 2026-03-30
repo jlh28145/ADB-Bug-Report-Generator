@@ -395,7 +395,7 @@ def _validate_device_constraints(options, device_profile, log_specs):
 
 def _list_device_records(client):
     if hasattr(client, "list_device_records"):
-        return client.list_device_records()
+        return [_coerce_device_record(record) for record in client.list_device_records()]
 
     return [{"serial": serial, "state": "device"} for serial in client.list_devices()]
 
@@ -423,3 +423,13 @@ def _resolve_ready_devices(device_records):
     raise DeviceUnavailableError(
         "No connected devices are currently available for collection."
     )
+
+
+def _coerce_device_record(record):
+    if isinstance(record, dict):
+        return record
+
+    return {
+        "serial": getattr(record, "serial"),
+        "state": getattr(record, "state"),
+    }

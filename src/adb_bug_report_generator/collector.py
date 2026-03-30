@@ -64,6 +64,13 @@ def _noop(*_args, **_kwargs):
     """Default output sink for non-CLI callers."""
 
 
+def _shell_result(client, command, device):
+    """Return shell output text from either the new or legacy client surface."""
+    if hasattr(client, "run_shell_command"):
+        return client.run_shell_command(command, device=device).stdout
+    return client.shell_text(command, device=device)
+
+
 @dataclass
 class CollectionOptions:
     """Collection-time options for the workflow."""
@@ -129,7 +136,7 @@ def get_application_directories(client, device):
     """Check which application directories exist on the target device."""
     existing_dirs = []
     for dir_path in APPLICATION_DIRECTORIES:
-        result = client.shell_text(f"test -d '{dir_path}' && echo exists", device=device)
+        result = _shell_result(client, f"test -d '{dir_path}' && echo exists", device)
         if result == "exists":
             existing_dirs.append(dir_path)
     return existing_dirs
@@ -157,7 +164,7 @@ def pull_directory(client, directory, dest_dir, device, output=None):
     local_dir.mkdir(parents=True, exist_ok=True)
     results = []
 
-    items = client.shell_text(f"ls -p {directory}", device=device)
+    items = _shell_result(client, f"ls -p {directory}", device)
     if not items:
         output(f"No items found in {directory}")
         return results
@@ -170,7 +177,7 @@ def pull_directory(client, directory, dest_dir, device, output=None):
 
         item_path = f"{directory}/{item.rstrip('/')}"
         try:
-            client.pull(item_path, local_dir, device=device)
+            client.pull_directory(item_path, local_dir, device=device)
             output(f"Pulled {item_path} to {local_dir}")
             results.append(
                 ArtifactResult(
@@ -196,7 +203,7 @@ def pull_recent_files(client, directory, ls_command, dest_dir, num_files, device
     """Pull the most recent files from a specific device directory."""
     output = output or _noop
     output(f"Getting {num_files} most recent file(s) from {directory} on device {device}")
-    recent_files = client.shell_text(f"{ls_command} | head -n {num_files}", device=device)
+    recent_files = _shell_result(client, f"{ls_command} | head -n {num_files}", device)
     results = []
 
     if not recent_files:
@@ -216,7 +223,7 @@ def pull_recent_files(client, directory, ls_command, dest_dir, num_files, device
             local_path = Path(dest_dir) / recent_file
 
         try:
-            client.pull(file_path, local_path, device=device)
+            client.pull_file(file_path, local_path, device=device)
             output(f"Pulled {file_path} to {local_path}")
             results.append(
                 ArtifactResult(
@@ -249,7 +256,7 @@ def collect_bugreport(client, dest_dir, device, device_profile, output=None):
     output("Generating bug report...")
     bugreport_zip = Path(dest_dir) / "bugreport.zip"
     try:
-        client.bugreport(bugreport_zip, device=device)
+        client.collect_bugreport(bugreport_zip, device=device)
         output(f"Bug report saved to {bugreport_zip}")
         return ArtifactResult(name="bugreport", status="collected", path=str(bugreport_zip))
     except Exception:
@@ -281,7 +288,7 @@ def collect_logs(client, device, report_paths, device_profile, output=None, log_
         result = ""
 
         for command in commands:
-            result = client.shell_text(command, device=device)
+            result = _shell_result(client, command, device)
             if result:
                 used_command = command
                 break
@@ -323,12 +330,12 @@ def collect_package_diagnostics(client, device, report_paths, package, device_pr
 
     sections = []
 
-    package_dump = client.shell_text(f"dumpsys package {package}", device=device)
+    package_dump = _shell_result(client, f"dumpsys package {package}", device)
     if package_dump:
         sections.append(f"## dumpsys package {package}\n{package_dump}")
 
     if _supports_requirement(device_profile, "pidof"):
-        package_pid = client.shell_text(f"pidof {package}", device=device)
+        package_pid = _shell_result(client, f"pidof {package}", device)
         if package_pid:
             sections.append(f"## pidof {package}\n{package_pid}")
 
@@ -362,7 +369,7 @@ def collect_protected_path_diagnostics(client, device, report_paths, device_prof
 
     sections = []
     for title, command in ROOT_DIAGNOSTIC_COMMANDS:
-        result = client.shell_text(command, device=device)
+        result = _shell_result(client, command, device)
         if result:
             sections.append(f"## {title}\n{result}")
 

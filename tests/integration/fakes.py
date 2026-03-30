@@ -1,5 +1,15 @@
 """Shared fake collaborators for integration tests."""
 
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class FakeCommandResult:
+    command: tuple[str, ...]
+    stdout: str
+    stderr: str = ""
+    returncode: int = 0
+
 
 class FakeADBClient:
     """Small fake ADB client for integration-style CLI tests."""
@@ -52,6 +62,12 @@ class FakeADBClient:
         }
         return responses.get(command, "")
 
+    def run_shell_command(self, command, device=None):
+        return FakeCommandResult(
+            command=("adb", "shell", "sh", "-c", command),
+            stdout=self.shell_text(command, device=device),
+        )
+
     def pull(self, remote_path, local_path, device=None):
         self.pulled.append((remote_path, str(local_path), device))
 
@@ -63,8 +79,17 @@ class FakeADBClient:
 
         destination.write_text(f"pulled from {remote_path}", encoding="utf-8")
 
+    def pull_file(self, remote_path, local_path, device=None):
+        self.pull(remote_path, local_path, device=device)
+
+    def pull_directory(self, remote_path, local_dir, device=None):
+        self.pull(remote_path, local_dir, device=device)
+
     def bugreport(self, output_path, device=None):
         output_path.write_text("bugreport", encoding="utf-8")
+
+    def collect_bugreport(self, output_path, device=None):
+        self.bugreport(output_path, device=device)
 
 
 class PartiallyFailingADBClient(FakeADBClient):
