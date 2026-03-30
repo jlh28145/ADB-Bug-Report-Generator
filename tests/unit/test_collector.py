@@ -245,6 +245,7 @@ def test_collect_protected_path_diagnostics_skips_when_root_is_unavailable(tmp_p
         "device-1234",
         SimpleNamespace(device_info_dir=tmp_path),
         profile,
+        include_protected_paths=True,
     )
 
     assert result.status == "skipped"
@@ -281,6 +282,7 @@ def test_collect_protected_path_diagnostics_uses_root_enhanced_commands(tmp_path
         "device-1234",
         SimpleNamespace(device_info_dir=tmp_path),
         profile,
+        include_protected_paths=True,
     )
 
     assert result.status == "collected"

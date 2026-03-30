@@ -1,11 +1,15 @@
 """Filesystem helpers for report creation."""
 
 import json
+import re
 import shutil
 import zipfile
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+
+INVALID_FILENAME_CHARS = re.compile(r"[^A-Za-z0-9._-]+")
+CONTROL_CHARS = re.compile(r"[\x00-\x1F\x7F]")
 
 
 @dataclass(frozen=True)
@@ -23,7 +27,7 @@ class ReportPaths:
 
 def create_report_paths(output_root="incident_reports"):
     """Create report directories for a single run."""
-    incident_dir = Path(output_root)
+    incident_dir = validate_output_root(output_root)
     incident_dir.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%m-%d-%Y_%H:%M:%S")
@@ -73,3 +77,24 @@ def create_zip_archive(source_dir, output_filename):
 def cleanup_report_dir(report_dir):
     """Remove the temporary extracted report directory."""
     shutil.rmtree(report_dir)
+
+
+def sanitize_filename_component(name, fallback="artifact"):
+    """Return a filesystem-safe filename component."""
+    sanitized = INVALID_FILENAME_CHARS.sub("_", Path(name).name).strip("._-")
+    return sanitized or fallback
+
+
+def sanitize_metadata_text(value):
+    """Strip control characters from metadata text fields."""
+    if value is None:
+        return None
+    return CONTROL_CHARS.sub("", str(value))
+
+
+def validate_output_root(output_root):
+    """Validate the requested output root path."""
+    path = Path(output_root).expanduser()
+    if path.exists() and not path.is_dir():
+        raise ValueError(f"Output path '{path}' exists and is not a directory.")
+    return path

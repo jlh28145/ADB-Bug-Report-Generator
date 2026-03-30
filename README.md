@@ -111,6 +111,7 @@ python3 generate_bug_report.py \
 - `--package`: Collect package diagnostics for a specific Android package.
 - `--allow-emulator`: Permit collection from an emulator target.
 - `--require-root`: Fail fast unless the selected device appears to have root available.
+- `--include-protected-paths`: Explicitly allow privileged root-enhanced protected-path diagnostics.
 - `--compat-mode`: Choose `auto`, `strict`, or `permissive` target validation behavior.
 - `--timeout`: Set the ADB command timeout in seconds.
 - `--output-dir`: Set the local output directory.
@@ -261,6 +262,21 @@ Current exit codes:
 - `6`: connected device blocked by authorization or offline state
 - `7`: emulator detected before Android boot completed
 - `8`: invalid operator input or compatibility constraint rejection
+
+## Sensitive Data
+Some diagnostics may contain sensitive data, including application state, account identifiers, device properties, and log contents.
+
+Current safeguards:
+- bugreport collection only runs when `--include-bugreport` is explicitly requested
+- protected-path diagnostics only run when `--include-protected-paths` is explicitly requested and root is available
+- package diagnostics only run when `--package` is explicitly requested
+- metadata text is sanitized before being written to `metadata.json`
+- device-provided filenames are sanitized before being written to the local filesystem
+
+Recommended handling:
+- avoid sharing raw bugreports or log archives publicly without review
+- treat generated archives as potentially sensitive troubleshooting artifacts
+- prefer emulator validation or reduced collector scope when full artifact collection is unnecessary
 
 ## Scope
 This project is intentionally focused on:

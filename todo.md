@@ -449,11 +449,11 @@ mypy
 ## Phase 11: Security and Data Handling
 
 ### Tasks
-- [ ] Remove unsafe shell command patterns where possible
-- [ ] Validate CLI inputs and output paths
-- [ ] Sanitize generated filenames and metadata content
-- [ ] Document sensitive-data considerations for logs, bugreports, and archives
-- [ ] Avoid collecting privileged data unless explicitly requested
+- [x] Remove unsafe shell command patterns where possible
+- [x] Validate CLI inputs and output paths
+- [x] Sanitize generated filenames and metadata content
+- [x] Document sensitive-data considerations for logs, bugreports, and archives
+- [x] Avoid collecting privileged data unless explicitly requested
 
 ### Senior SDET Signal
 - [ ] Shows quality ownership beyond happy paths
