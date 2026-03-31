@@ -1,9 +1,11 @@
 """Collection workflow and orchestration."""
 
+import shlex
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from adb_bug_report_generator.exceptions import NoConnectedDevicesError
+from adb_bug_report_generator.filesystem import sanitize_filename_component
 
 DIRECTORIES_TO_PULL = [
     "/sdcard/Pictures",
@@ -82,6 +84,7 @@ class CollectionOptions:
     package: str | None = None
     device: str | None = None
     incident_summary: str | None = None
+    include_protected_paths: bool = False
     non_interactive: bool = False
     fail_on_partial: bool = False
     timeout: float | None = None
@@ -175,14 +178,16 @@ def pull_directory(client, directory, dest_dir, device, output=None):
             continue
 
         item_path = f"{directory}/{item.rstrip('/')}"
+        safe_name = sanitize_filename_component(item.rstrip("/"))
+        local_path = local_dir / safe_name
         try:
-            client.pull_directory(item_path, local_dir, device=device)
-            output(f"Pulled {item_path} to {local_dir}")
+            client.pull_file(item_path, local_path, device=device)
+            output(f"Pulled {item_path} to {local_path}")
             results.append(
                 ArtifactResult(
                     name=f"pull:{item_path}",
                     status="collected",
-                    path=str(local_dir / Path(item_path).name),
+                    path=str(local_path),
                 )
             )
         except Exception:
@@ -212,16 +217,17 @@ def pull_recent_files(
         return results
 
     for recent_file in recent_files.splitlines():
+        safe_filename = sanitize_filename_component(recent_file)
         file_path = f"{directory}/{recent_file}"
 
         if "Movies" in directory and recent_file.startswith("screen-"):
-            local_path = report_paths.screen_recordings_dir / recent_file
+            local_path = report_paths.screen_recordings_dir / safe_filename
         elif "ConsoleLogs" in directory:
-            local_path = report_paths.qgc_logs_dir / recent_file
+            local_path = report_paths.qgc_logs_dir / safe_filename
         elif "Navsuite" in directory:
-            local_path = report_paths.navsuite_log_dir / recent_file
+            local_path = report_paths.navsuite_log_dir / safe_filename
         else:
-            local_path = Path(dest_dir) / recent_file
+            local_path = Path(dest_dir) / safe_filename
 
         try:
             client.pull_file(file_path, local_path, device=device)
@@ -339,13 +345,14 @@ def collect_package_diagnostics(client, device, report_paths, package, device_pr
         return ArtifactResult(name="package_diagnostics", status="skipped", detail=detail)
 
     sections = []
+    quoted_package = shlex.quote(package)
 
-    package_dump = _shell_result(client, f"dumpsys package {package}", device)
+    package_dump = _shell_result(client, f"dumpsys package {quoted_package}", device)
     if package_dump:
         sections.append(f"## dumpsys package {package}\n{package_dump}")
 
     if _supports_requirement(device_profile, "pidof"):
-        package_pid = _shell_result(client, f"pidof {package}", device)
+        package_pid = _shell_result(client, f"pidof {quoted_package}", device)
         if package_pid:
             sections.append(f"## pidof {package}\n{package_pid}")
 
@@ -365,9 +372,24 @@ def collect_package_diagnostics(client, device, report_paths, package, device_pr
     )
 
 
-def collect_protected_path_diagnostics(client, device, report_paths, device_profile, output=None):
+def collect_protected_path_diagnostics(
+    client,
+    device,
+    report_paths,
+    device_profile,
+    include_protected_paths=False,
+    output=None,
+):
     """Collect limited diagnostics from protected paths when root is available."""
     output = output or _noop
+
+    if not include_protected_paths:
+        detail = (
+            "Skipped protected-path diagnostics because privileged collection "
+            "was not explicitly requested."
+        )
+        output(detail)
+        return ArtifactResult(name="protected_path_diagnostics", status="skipped", detail=detail)
 
     if not device_profile.is_rooted:
         detail = (

@@ -3,6 +3,9 @@
 from adb_bug_report_generator.filesystem import (
     create_report_paths,
     create_zip_archive,
+    sanitize_filename_component,
+    sanitize_metadata_text,
+    validate_output_root,
     write_json_file,
 )
 from tests import _bootstrap  # noqa: F401
@@ -31,3 +34,23 @@ def test_create_zip_archive_writes_metadata_and_files(tmp_path):
 
     assert zip_path.exists()
     assert (source_dir / "metadata.json").exists()
+
+
+def test_sanitize_filename_component_removes_path_traversal_and_symbols():
+    assert sanitize_filename_component("../bad:name?.txt") == "bad_name_.txt"
+
+
+def test_sanitize_metadata_text_removes_control_characters():
+    assert sanitize_metadata_text("hello\x00world\n") == "helloworld"
+
+
+def test_validate_output_root_rejects_existing_file(tmp_path):
+    target = tmp_path / "file.txt"
+    target.write_text("x", encoding="utf-8")
+
+    try:
+        validate_output_root(target)
+    except ValueError as exc:
+        assert "is not a directory" in str(exc)
+    else:
+        raise AssertionError("validate_output_root should reject existing files")

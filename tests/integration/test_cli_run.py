@@ -34,6 +34,7 @@ def build_args(tmp_path, **overrides):
         "include_bugreport": False,
         "package": None,
         "incident_summary": None,
+        "include_protected_paths": False,
         "non_interactive": False,
         "fail_on_partial": False,
         "timeout": 60.0,
@@ -285,7 +286,7 @@ def test_run_collects_optional_package_diagnostics(tmp_path):
 
 
 def test_run_skips_protected_path_diagnostics_when_root_is_unavailable(tmp_path):
-    args = build_args(tmp_path)
+    args = build_args(tmp_path, include_protected_paths=True)
     logger = logging.getLogger("test_cli_protected_paths_non_root")
 
     exit_code = run(
@@ -307,7 +308,7 @@ def test_run_skips_protected_path_diagnostics_when_root_is_unavailable(tmp_path)
 
 
 def test_run_collects_protected_path_diagnostics_when_root_is_available(tmp_path):
-    args = build_args(tmp_path)
+    args = build_args(tmp_path, include_protected_paths=True)
     logger = logging.getLogger("test_cli_protected_paths_root")
 
     exit_code = run(
@@ -327,6 +328,78 @@ def test_run_collects_protected_path_diagnostics_when_root_is_available(tmp_path
             item for item in metadata["artifacts"] if item["name"] == "protected_path_diagnostics"
         )
         assert result["status"] == "collected"
+
+
+def test_run_skips_protected_paths_until_explicitly_requested(tmp_path):
+    args = build_args(tmp_path)
+    logger = logging.getLogger("test_cli_protected_paths_explicit_opt_in")
+
+    exit_code = run(
+        args, logger, client=RootedADBClient(), prompt=lambda _: "protected path opt-in summary"
+    )
+
+    assert exit_code == 0
+
+    zip_files = list((tmp_path / "output").glob("QA_bug_report_*.zip"))
+    assert len(zip_files) == 1
+
+    with ZipFile(zip_files[0]) as archive:
+        metadata = json.loads(archive.read("metadata.json").decode("utf-8"))
+        result = next(
+            item for item in metadata["artifacts"] if item["name"] == "protected_path_diagnostics"
+        )
+        assert result["status"] == "skipped"
+        assert "not explicitly requested" in result["detail"]
+
+
+def test_main_rejects_invalid_package_name(tmp_path, caplog):
+    args = build_args(tmp_path, package="com.example.app; rm -rf /")
+    logger = logging.getLogger("test_cli_invalid_package_name")
+
+    with caplog.at_level(logging.ERROR, logger=logger.name):
+        exit_code = main(
+            args=args,
+            logger=logger,
+            client=FakeADBClient(),
+            prompt=lambda _: "unused",
+        )
+
+    assert exit_code == 8
+    assert "Package name contains unsupported characters" in caplog.text
+
+
+def test_main_rejects_output_dir_when_target_is_a_file(tmp_path, caplog):
+    output_target = tmp_path / "existing-file"
+    output_target.write_text("not a directory", encoding="utf-8")
+    args = build_args(tmp_path, output_dir=str(output_target))
+    logger = logging.getLogger("test_cli_invalid_output_dir")
+
+    with caplog.at_level(logging.ERROR, logger=logger.name):
+        exit_code = main(
+            args=args,
+            logger=logger,
+            client=FakeADBClient(),
+            prompt=lambda _: "unused",
+        )
+
+    assert exit_code == 8
+    assert "exists and is not a directory" in caplog.text
+
+
+def test_run_sanitizes_incident_summary_before_writing_metadata(tmp_path):
+    args = build_args(tmp_path, incident_summary="hello\x00world", non_interactive=True)
+    logger = logging.getLogger("test_cli_sanitized_incident_summary")
+
+    exit_code = run(args, logger, client=FakeADBClient(), prompt=lambda _: "unused")
+
+    assert exit_code == 0
+
+    zip_files = list((tmp_path / "output").glob("QA_bug_report_*.zip"))
+    assert len(zip_files) == 1
+
+    with ZipFile(zip_files[0]) as archive:
+        metadata = json.loads(archive.read("metadata.json").decode("utf-8"))
+        assert metadata["incident_summary"] == "helloworld"
 
 
 def test_run_can_use_explicit_device_and_incident_summary_non_interactively(tmp_path):

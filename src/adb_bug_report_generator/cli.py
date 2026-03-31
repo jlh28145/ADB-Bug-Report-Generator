@@ -35,6 +35,8 @@ from adb_bug_report_generator.filesystem import (
     cleanup_report_dir,
     create_report_paths,
     create_zip_archive,
+    sanitize_metadata_text,
+    validate_output_root,
     write_json_file,
     write_text_file,
 )
@@ -110,6 +112,11 @@ def parse_args():
         help="Fail if the selected device does not appear to have root available.",
     )
     parser.add_argument(
+        "--include-protected-paths",
+        action="store_true",
+        help="Explicitly allow root-enhanced protected-path diagnostics when root is available.",
+    )
+    parser.add_argument(
         "--compat-mode",
         choices=("auto", "strict", "permissive"),
         default="auto",
@@ -160,6 +167,7 @@ def main(args=None, logger=None, client=None, prompt=input, device_prompt=input)
 
 def run(args, logger, client=None, prompt=input, device_prompt=input):
     """Orchestrate a collection run."""
+    _validate_cli_inputs(args)
     client = client or ADBClient(timeout_seconds=args.timeout)
     paths = create_report_paths(args.output_dir)
     options = CollectionOptions(
@@ -171,6 +179,7 @@ def run(args, logger, client=None, prompt=input, device_prompt=input):
         package=args.package,
         device=args.device,
         incident_summary=args.incident_summary,
+        include_protected_paths=args.include_protected_paths,
         non_interactive=args.non_interactive,
         fail_on_partial=args.fail_on_partial,
         timeout=args.timeout,
@@ -289,6 +298,7 @@ def run(args, logger, client=None, prompt=input, device_prompt=input):
             selected_device,
             paths,
             device_profile,
+            include_protected_paths=options.include_protected_paths,
             output=logger.info,
         )
     )
@@ -297,9 +307,9 @@ def run(args, logger, client=None, prompt=input, device_prompt=input):
     write_text_file(paths.report_dir / "run_summary.txt", run_summary)
 
     metadata = {
-        "incident_summary": user_summary,
+        "incident_summary": sanitize_metadata_text(user_summary),
         "timestamp": paths.timestamp,
-        "device": selected_device,
+        "device": sanitize_metadata_text(selected_device),
         "device_profile": profile_to_metadata(device_profile),
         "selected_options": {
             "num_recent_files": options.num_recent_files,
@@ -307,16 +317,17 @@ def run(args, logger, client=None, prompt=input, device_prompt=input):
             "include_logcat": options.include_logcat,
             "include_device_info": options.include_device_info,
             "include_bugreport": options.include_bugreport,
-            "package": options.package,
-            "device": options.device,
-            "incident_summary": options.incident_summary,
+            "package": sanitize_metadata_text(options.package),
+            "device": sanitize_metadata_text(options.device),
+            "incident_summary": sanitize_metadata_text(options.incident_summary),
+            "include_protected_paths": options.include_protected_paths,
             "non_interactive": options.non_interactive,
             "fail_on_partial": options.fail_on_partial,
             "timeout": options.timeout,
             "allow_emulator": options.allow_emulator,
             "require_root": options.require_root,
             "compat_mode": options.compat_mode,
-            "output_dir": args.output_dir,
+            "output_dir": sanitize_metadata_text(args.output_dir),
         },
         "artifacts": [result.to_metadata() for result in artifact_results],
     }
@@ -360,14 +371,31 @@ def _resolve_selected_device(options, devices, device_prompt, logger):
 
 def _resolve_incident_summary(options, prompt, logger):
     if options.incident_summary is not None:
-        return options.incident_summary
+        return sanitize_metadata_text(options.incident_summary)
 
     if options.non_interactive:
         logger.info("No incident summary provided; using an empty summary in non-interactive mode.")
         return ""
 
     logger.info("Please provide a summary of the incident.")
-    return prompt("Incident Summary: ")
+    return sanitize_metadata_text(prompt("Incident Summary: "))
+
+
+def _validate_cli_inputs(args):
+    try:
+        validate_output_root(args.output_dir)
+    except ValueError as exc:
+        raise InvalidDeviceSelectionError(str(exc)) from exc
+
+    if args.package and not _is_safe_package_name(args.package):
+        raise InvalidDeviceSelectionError(
+            "Package name contains unsupported characters. Use a standard Android package id."
+        )
+
+
+def _is_safe_package_name(package):
+    allowed = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._")
+    return bool(package) and all(char in allowed for char in package)
 
 
 def _validate_device_constraints(options, device_profile, log_specs):
