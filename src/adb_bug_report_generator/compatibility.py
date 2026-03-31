@@ -90,9 +90,7 @@ def _parse_int(value):
 
 
 def detect_root(client, serial):
-    result = _probe_shell_text(
-        client, "command -v su >/dev/null 2>&1 && echo available", serial
-    )
+    result = _probe_shell_text(client, "command -v su >/dev/null 2>&1 && echo available", serial)
     return result == "available"
 
 
