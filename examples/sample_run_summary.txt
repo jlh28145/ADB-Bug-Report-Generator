@@ -1,0 +1,9 @@
+Run Summary
+
+- logcat: collected (output/demo-real-device/report_2026-03-31_09-52-13/Device Info/logcat.txt) - Collected using `logcat -d`.
+- device_info: collected (output/demo-real-device/report_2026-03-31_09-52-13/Device Info/device_info.txt) - Collected using `getprop`.
+- cpu_usage: collected (output/demo-real-device/report_2026-03-31_09-52-13/Device Info/cpu_usage.txt) - Collected using `top -n 1`.
+- network_config: collected (output/demo-real-device/report_2026-03-31_09-52-13/Device Info/network_config.txt) - Collected using `ifconfig`.
+- bugreport: collected (output/demo-real-device/report_2026-03-31_09-52-13/bugreport.zip)
+- package_diagnostics: collected (output/demo-real-device/report_2026-03-31_09-52-13/Device Info/package_diagnostics.txt) - Collected package diagnostics for ai.pdw.gcs.
+- protected_path_diagnostics: skipped - Skipped protected-path diagnostics because privileged collection was not explicitly requested.

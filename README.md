@@ -179,6 +179,7 @@ Direct equivalents:
 
 Supporting docs:
 - [CONTRIBUTING.md](/home/vhinson/dev/ADB-Bug-Report-Generator/CONTRIBUTING.md)
+- [examples/README.md](/home/vhinson/dev/ADB-Bug-Report-Generator/examples/README.md)
 - [tests/integration/README.md](/home/vhinson/dev/ADB-Bug-Report-Generator/tests/integration/README.md)
 - [tests/e2e/README.md](/home/vhinson/dev/ADB-Bug-Report-Generator/tests/e2e/README.md)
 - [tests/e2e/manual_validation_checklist.md](/home/vhinson/dev/ADB-Bug-Report-Generator/tests/e2e/manual_validation_checklist.md)
@@ -234,6 +235,8 @@ What that means in practice:
 - the tool supports both content-rich and diagnostics-only device states
 - physical-device output can vary substantially based on what is actually present on-device
 - rooted-device enhanced validation is still intentionally deferred
+
+Sanitized demo material is available in [examples/README.md](/home/vhinson/dev/ADB-Bug-Report-Generator/examples/README.md).
 
 ## Compatibility and Fallback Strategy
 The tool builds a device profile before collection starts and uses that profile to decide what to collect and what to skip.

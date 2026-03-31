@@ -1,0 +1,75 @@
+{
+  "timestamp": "2026-03-31_09-52-13",
+  "incident_summary": "demo real-device run",
+  "device": "demo-device-001",
+  "device_profile": {
+    "serial": "demo-device-001",
+    "model": "S6304L",
+    "manufacturer": "NUU",
+    "android_version": "13",
+    "sdk_level": 33,
+    "is_emulator": false,
+    "is_boot_completed": true,
+    "is_rooted": false,
+    "accessible_paths": [],
+    "available_commands": {
+      "bugreport": true,
+      "dumpsys": true,
+      "getprop": true,
+      "ifconfig": true,
+      "ip": true,
+      "logcat": true,
+      "top": true
+    }
+  },
+  "selected_options": {
+    "device": "demo-device-001",
+    "incident_summary": "demo real-device run",
+    "include_logcat": true,
+    "include_device_info": true,
+    "include_bugreport": true,
+    "package": "ai.pdw.gcs",
+    "include_protected_paths": false,
+    "non_interactive": true,
+    "fail_on_partial": false,
+    "allow_emulator": false,
+    "require_root": false,
+    "compat_mode": "auto",
+    "simplified": false,
+    "num_recent_files": 5,
+    "timeout": 60.0,
+    "output_dir": "output/demo-real-device"
+  },
+  "artifacts": [
+    {
+      "name": "logcat",
+      "status": "collected",
+      "path": "output/demo-real-device/report_2026-03-31_09-52-13/Device Info/logcat.txt",
+      "detail": "Collected using `logcat -d`."
+    },
+    {
+      "name": "device_info",
+      "status": "collected",
+      "path": "output/demo-real-device/report_2026-03-31_09-52-13/Device Info/device_info.txt",
+      "detail": "Collected using `getprop`."
+    },
+    {
+      "name": "bugreport",
+      "status": "collected",
+      "path": "output/demo-real-device/report_2026-03-31_09-52-13/bugreport.zip",
+      "detail": ""
+    },
+    {
+      "name": "package_diagnostics",
+      "status": "collected",
+      "path": "output/demo-real-device/report_2026-03-31_09-52-13/Device Info/package_diagnostics.txt",
+      "detail": "Collected package diagnostics for ai.pdw.gcs."
+    },
+    {
+      "name": "protected_path_diagnostics",
+      "status": "skipped",
+      "path": null,
+      "detail": "Skipped protected-path diagnostics because privileged collection was not explicitly requested."
+    }
+  ]
+}
