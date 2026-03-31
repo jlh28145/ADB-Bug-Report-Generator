@@ -351,9 +351,9 @@ Functions:
 - [x] Note which collectors require physical hardware and which are emulator-safe
 
 ### Real Device Testing
-- [ ] Validate at least one non-rooted physical device path
+- [x] Validate at least one non-rooted physical device path
 - [ ] Validate rooted-device enhanced flows if hardware is available
-- [ ] Record differences observed across Android versions
+- [x] Record differences observed across Android versions
 
 Recommended preflight commands:
 
@@ -374,6 +374,18 @@ PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
   --output-dir output/manual-non-root
 ```
 
+Full report review on a real device:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
+  --device <serial> \
+  --incident-summary "full manual validation review" \
+  --non-interactive \
+  --include-bugreport \
+  --package ai.pdw.gcs \
+  --output-dir output/full-manual-review
+```
+
 Optional package diagnostics on a real device:
 
 ```bash
@@ -384,6 +396,17 @@ PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
   --non-interactive \
   --output-dir output/manual-package
 ```
+
+Latest non-root validation result:
+
+- Validated on 2026-03-31 against `2BKHA09608` (`PANASONIC FZ-S1`, Android `11`, SDK `30`)
+- Primary non-root run succeeded and produced `run_summary.txt`, `metadata.json`, `Device Info/logcat.txt`, and `Device Info/device_info.txt`
+- `metadata.json` recorded `is_rooted: false`, `is_emulator: false`, and the expected Android version / SDK
+- Protected-path diagnostics were skipped with the expected explicit non-root reason because `--include-protected-paths` was not requested
+- Optional package diagnostics also succeeded for `ai.pdw.gcs`
+- Full report review on the Android 11 device succeeded after removing the bugreport timeout, with broad media/app-log pulls plus `bugreport.zip`
+- Cross-version comparison completed on 2026-03-31 against `MBA23P233500452` (`NUU S6304L`, Android `13`, SDK `33`)
+- The Android 13 device produced diagnostics, `bugreport.zip`, and package diagnostics successfully, but had no matching media/app directories, which is now documented as expected device-content variability rather than a collection failure
 
 Rooted-device validation:
 

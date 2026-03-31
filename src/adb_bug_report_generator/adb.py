@@ -1,6 +1,7 @@
 """ADB client abstraction."""
 
 import re
+import shlex
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -22,6 +23,7 @@ RETRYABLE_STDERR_PATTERNS = (
     "connection reset",
     "closed",
 )
+DEFAULT_TIMEOUT = object()
 
 
 @dataclass(frozen=True)
@@ -105,10 +107,10 @@ class ADBClient:
             available_commands={name: self.command_exists(name, serial) for name in KNOWN_COMMANDS},
         )
 
-    def run_shell_command(self, command, device=None):
+    def run_shell_command(self, command, device=None, allow_failure=False):
         """Run an ADB shell command and return a cleaned structured result."""
-        args = self._device_prefix(device) + ["shell", "sh", "-c", command]
-        result = self._run(args)
+        args = self._device_prefix(device) + ["shell", f"sh -c {shlex.quote(command)}"]
+        result = self._run(args, allow_failure=allow_failure)
         return ADBCommandResult(
             command=result.command,
             stdout=ANSI_ESCAPE_PATTERN.sub("", result.stdout.strip()),
@@ -125,6 +127,7 @@ class ADBClient:
         result = self.run_shell_command(
             f"command -v {command} >/dev/null 2>&1 && echo available",
             device=device,
+            allow_failure=True,
         )
         return result.stdout == "available"
 
@@ -145,7 +148,7 @@ class ADBClient:
     def collect_bugreport(self, output_path, device=None):
         """Collect an ADB bugreport zip."""
         args = self._device_prefix(device) + ["bugreport", str(output_path)]
-        return self._run(args, retryable=True)
+        return self._run(args, retryable=True, timeout_seconds=None)
 
     def bugreport(self, output_path, device=None):
         """Backwards-compatible alias for bugreport collection."""
@@ -167,9 +170,12 @@ class ADBClient:
             args.extend(["-s", device])
         return args
 
-    def _run(self, args, retryable=False):
+    def _run(self, args, retryable=False, allow_failure=False, timeout_seconds=DEFAULT_TIMEOUT):
         attempts = 1 + self.retry_attempts if retryable else 1
         last_error = None
+        effective_timeout = (
+            self.timeout_seconds if timeout_seconds is DEFAULT_TIMEOUT else timeout_seconds
+        )
 
         for attempt in range(1, attempts + 1):
             try:
@@ -178,7 +184,7 @@ class ADBClient:
                     text=True,
                     capture_output=True,
                     check=True,
-                    timeout=self.timeout_seconds,
+                    timeout=effective_timeout,
                 )
                 return ADBCommandResult(
                     command=tuple(str(part) for part in completed.args),
@@ -196,13 +202,20 @@ class ADBClient:
                     exit_code=4,
                 ) from exc
             except subprocess.TimeoutExpired as exc:
-                timeout_seconds = self.timeout_seconds if self.timeout_seconds is not None else 0
+                timeout_seconds = effective_timeout if effective_timeout is not None else 0
                 raise AdbTimeoutError(
                     f"ADB command timed out after {timeout_seconds} seconds.",
                     args,
                     timeout_seconds,
                 ) from exc
             except subprocess.CalledProcessError as exc:
+                if allow_failure:
+                    return ADBCommandResult(
+                        command=tuple(str(part) for part in exc.cmd),
+                        stdout=exc.stdout or "",
+                        stderr=exc.stderr or "",
+                        returncode=exc.returncode,
+                    )
                 last_error = self._map_command_error(args, exc.stderr.strip())
                 if attempt < attempts and self._should_retry(exc.stderr):
                     continue

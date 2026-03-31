@@ -72,6 +72,16 @@ def _shell_or_unknown(client, command, serial):
     return result or "unknown"
 
 
+def _probe_shell_text(client, command, serial):
+    """Return stdout for probe-style shell commands without failing on non-zero exit."""
+    if hasattr(client, "run_shell_command"):
+        try:
+            return client.run_shell_command(command, device=serial, allow_failure=True).stdout
+        except TypeError:
+            return client.run_shell_command(command, device=serial).stdout
+    return client.shell_text(command, device=serial)
+
+
 def _parse_int(value):
     try:
         return int(value)
@@ -80,7 +90,7 @@ def _parse_int(value):
 
 
 def detect_root(client, serial):
-    result = client.shell_text("command -v su >/dev/null 2>&1 && echo available", device=serial)
+    result = _probe_shell_text(client, "command -v su >/dev/null 2>&1 && echo available", serial)
     return result == "available"
 
 
@@ -93,14 +103,14 @@ def detect_boot_completed(client, serial):
 def detect_accessible_paths(client, serial):
     paths = []
     for path in APPLICATION_DIRECTORIES:
-        exists = client.shell_text(f"test -d '{path}' && echo exists", device=serial)
+        exists = _probe_shell_text(client, f"test -d '{path}' && echo exists", serial)
         if exists == "exists":
             paths.append(path)
     return paths
 
 
 def command_exists(client, command, serial):
-    result = client.shell_text(
-        f"command -v {command} >/dev/null 2>&1 && echo available", device=serial
+    result = _probe_shell_text(
+        client, f"command -v {command} >/dev/null 2>&1 && echo available", serial
     )
     return result == "available"
