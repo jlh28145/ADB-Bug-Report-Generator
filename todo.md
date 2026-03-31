@@ -486,14 +486,14 @@ mypy
 ## Phase 12: Developer Experience
 
 ### Tasks
-- [ ] Add contributor setup instructions
-- [ ] Add simple run/test/lint commands
-- [ ] Make local validation fast and easy
-- [ ] Provide troubleshooting for common environment issues
-- [ ] Add emulator startup instructions for contributors without physical test devices
+- [x] Add contributor setup instructions
+- [x] Add simple run/test/lint commands
+- [x] Make local validation fast and easy
+- [x] Provide troubleshooting for common environment issues
+- [x] Add emulator startup instructions for contributors without physical test devices
 
 ### Senior SDET Signal
-- [ ] Enablement mindset and team-friendly automation
+- [x] Enablement mindset and team-friendly automation
 
 ---
 
@@ -503,18 +503,18 @@ mypy
 
 ### Sections
 - [x] Overview
-- [ ] Features
-- [ ] Use Case
-- [ ] CLI Examples
-- [ ] Output Structure
+- [x] Features
+- [x] Use Case
+- [x] CLI Examples
+- [x] Output Structure
 - [x] Prerequisites and setup
-- [ ] Testing
-- [ ] Emulator Testing
-- [ ] Real Device Support
-- [ ] Compatibility and Fallback Strategy
-- [ ] Architecture
-- [ ] Failure Handling
-- [ ] CI Quality Gates
+- [x] Testing
+- [x] Emulator Testing
+- [x] Real Device Support
+- [x] Compatibility and Fallback Strategy
+- [x] Architecture
+- [x] Failure Handling
+- [x] CI Quality Gates
 - [x] Current limitations and tradeoffs
 
 ### Senior SDET Signal
@@ -522,94 +522,67 @@ mypy
 
 ---
 
-## Phase 14: Architecture Decision Records
-
-### Tasks
-- [ ] Add an ADR for project structure and module boundaries
-- [ ] Add an ADR for ADB abstraction and subprocess handling
-- [ ] Add an ADR for compatibility detection and fallback design
-- [ ] Add an ADR for test strategy and CI scope
-
-### Senior SDET Signal
-- [ ] Demonstrates design reasoning and maintainability thinking
-
----
-
 ## Phase 15: Demo Readiness
 
 ### Tasks
-- [ ] Add sanitized example output under `examples/`
-- [ ] Add a walkthrough of a sample run
-- [ ] Add terminal screenshots or recorded output
-- [ ] Include at least one emulator-based demo path
-- [ ] Include one real-device validation summary if available
+- [x] Add sanitized example output under `examples/`
+- [x] Add a walkthrough of a sample run
+- [x] Add terminal screenshots or recorded output
+- [x] Include at least one emulator-based demo path
+- [x] Include one real-device validation summary if available
 
 ### Senior SDET Signal
-- [ ] Makes results visible and reviewable
-
----
-
-## Phase 16: Portfolio Storytelling
-
-### Tasks
-- [ ] Add a before-vs-after comparison from the original script to the refactored tool
-- [ ] Add a short engineering decisions and tradeoffs section
-- [ ] Highlight emulator-backed validation and real-device support
-- [ ] Highlight Android-version and root/non-root fallback design
-- [ ] Add a resume-ready project summary
-
-### Senior SDET Signal
-- [ ] Communicates technical leadership, not just implementation effort
+- [x] Makes results visible and reviewable
 
 ---
 
 ## Phase 17: Repo Presentation
 
 ### Update Description
-- [ ] System-level Android diagnostics utility using ADB, designed for repeatable artifact collection across emulators and physical devices with compatibility-aware fallbacks and strong test automation practices
+- [x] System-level Android diagnostics utility using ADB, designed for repeatable artifact collection across emulators and physical devices with compatibility-aware fallbacks and strong test automation practices
 
 ### Add Tags
-- [ ] python
-- [ ] adb
-- [ ] android
-- [ ] debugging
-- [ ] qa
-- [ ] sdet
-- [ ] test-automation
-- [ ] reliability
-- [ ] ci-cd
+- [x] python
+- [x] adb
+- [x] android
+- [x] debugging
+- [x] qa
+- [x] sdet
+- [x] test-automation
+- [x] reliability
+- [x] ci-cd
 
 ### Senior SDET Signal
-- [ ] Makes the project searchable and easy to position professionally
+- [x] Makes the project searchable and easy to position professionally
 
 ---
 
 ## Final Checklist
 
 ### Functional
-- [ ] Works on emulator and real device targets
+- [x] Works on emulator and real device targets
 - [ ] Handles rooted and non-rooted modes sensibly
-- [ ] Applies Android-version-aware fallbacks
-- [ ] Produces useful output even on partial failure
+- [x] Applies Android-version-aware fallbacks
+- [x] Produces useful output even on partial failure
 
 ### Quality
 - [x] Script import-time side effects reduced
-- [ ] Tests pass
+- [x] Tests pass
 - [ ] CI passes
-- [ ] Logging is clear
-- [ ] Output and metadata are easy to validate
+- [x] Logging is clear
+- [x] Output and metadata are easy to validate
 
 ### Documentation
 - [x] README is aligned with current behavior
-- [ ] CLI examples work
+- [x] CLI examples work
 - [x] Compatibility strategy is captured in the roadmap
-- [ ] Testing strategy is documented in the README
+- [x] Testing strategy is documented in the README
 
 ### Portfolio Signal
 - [x] Repo shows clearer system-design intent than the starting point
 - [x] Repo shows stronger debugging workflow direction than the starting point
-- [ ] Repo shows maintainable automation practices
-- [ ] Repo shows senior QA / SDET decision-making
+- [x] Repo shows maintainable automation practices
+- [x] Repo shows senior QA / SDET decision-making
 
 ---
 

@@ -1,0 +1,21 @@
+$ PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
+>   --device demo-device-001 \
+>   --incident-summary "demo real-device run" \
+>   --non-interactive \
+>   --include-bugreport \
+>   --package ai.pdw.gcs \
+>   --output-dir output/demo-real-device
+INFO: Selected device: demo-device-001
+INFO: Detected profile: model=S6304L manufacturer=NUU android=13 sdk=33 emulator=False boot_completed=True rooted=False
+INFO: No valid application directories found.
+INFO: No items found in /sdcard/Pictures
+INFO: No items found in /sdcard/Movies
+INFO: Collecting logcat...
+INFO: logcat saved to output/demo-real-device/report_2026-03-31_09-52-13/Device Info/logcat.txt
+INFO: Collecting device_info...
+INFO: device_info saved to output/demo-real-device/report_2026-03-31_09-52-13/Device Info/device_info.txt
+INFO: Generating bug report...
+INFO: Bug report saved to output/demo-real-device/report_2026-03-31_09-52-13/bugreport.zip
+INFO: Package diagnostics saved to output/demo-real-device/report_2026-03-31_09-52-13/Device Info/package_diagnostics.txt
+INFO: Skipped protected-path diagnostics because privileged collection was not explicitly requested.
+INFO: Incident report created: output/demo-real-device/QA_bug_report_2026-03-31_09-52-13.zip

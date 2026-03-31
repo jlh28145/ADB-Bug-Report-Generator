@@ -1,0 +1,16 @@
+QA_bug_report_2026-03-31_09-52-13.zip
+|-- run_summary.txt
+|-- metadata.json
+|-- bugreport.zip
+`-- Device Info/
+    |-- battery_info.txt
+    |-- cpu_usage.txt
+    |-- device_info.txt
+    |-- event_logs.txt
+    |-- logcat.txt
+    |-- meminfo_pdw_gcs.txt
+    |-- meminfo_qgroundcontrol.txt
+    |-- network_config.txt
+    |-- network_stats.txt
+    |-- package_diagnostics.txt
+    `-- storage_info.txt
