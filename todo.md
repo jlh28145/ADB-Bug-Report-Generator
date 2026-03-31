@@ -456,7 +456,7 @@ mypy
 - [x] Avoid collecting privileged data unless explicitly requested
 
 ### Senior SDET Signal
-- [ ] Shows quality ownership beyond happy paths
+- [x] Shows quality ownership beyond happy paths
 
 ---
 
