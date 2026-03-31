@@ -41,6 +41,7 @@ CI behavior:
 Recommended baseline:
 - Android Emulator created from Android Studio Device Manager
 - API level 30 or newer
+- `x86_64` image preferred for local development
 - boot completed before starting the smoke run
 - `adb devices` shows the emulator in `device` state
 
@@ -52,6 +53,8 @@ adb -s emulator-5554 shell getprop sys.boot_completed
 ```
 
 The second command should return `1` before the smoke test is started.
+
+For contributor-focused setup and troubleshooting, see [CONTRIBUTING.md](/home/vhinson/dev/ADB-Bug-Report-Generator/CONTRIBUTING.md).
 
 ## Collector Notes
 

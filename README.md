@@ -73,6 +73,8 @@ PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator
 
 In restricted or offline environments, editable install may require local packaging tools already present in the virtual environment.
 
+Contributor-focused setup, emulator onboarding, and troubleshooting are documented in [CONTRIBUTING.md](/home/vhinson/dev/ADB-Bug-Report-Generator/CONTRIBUTING.md).
+
 ## Usage
 Basic example:
 
@@ -211,6 +213,16 @@ Supporting test docs:
 - `tests/e2e/manual_validation_checklist.md`
 
 ## Quality Tooling
+Simple local shortcuts:
+
+```bash
+make run
+make test
+make lint
+make format
+make validate
+```
+
 Local quality commands:
 
 ```bash
@@ -238,6 +250,22 @@ CI/CD is implemented with GitHub Actions in `.github/workflows/ci.yml` and curre
 Pipeline jobs:
 - `quality`: lint, pre-commit, tests, coverage, build, and packaged import validation
 - `emulator-smoke`: Android emulator-backed smoke coverage on `main` pushes and manual dispatch
+
+## Developer Experience
+
+Recommended contributor flow:
+
+```bash
+make install
+make test
+make lint
+make validate
+```
+
+Common local workflows:
+- use `make run` to confirm the CLI entry point is wired correctly
+- use `make smoke` for the opt-in emulator-backed smoke test
+- use [CONTRIBUTING.md](/home/vhinson/dev/ADB-Bug-Report-Generator/CONTRIBUTING.md) for setup, emulator startup, and troubleshooting guidance
 
 ## Error Handling
 Current operator-facing failure handling includes:
