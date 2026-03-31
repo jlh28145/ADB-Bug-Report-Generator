@@ -110,8 +110,72 @@ def test_run_maps_offline_error_without_retry_when_attempts_exhausted(monkeypatc
         client.pull_file("/sdcard/example.txt", "/tmp/example.txt")
 
 
+def test_run_shell_command_returns_result_on_non_zero_exit_when_allowed(monkeypatch):
+    client = ADBClient()
+
+    def fake_run(*_args, **_kwargs):
+        error = subprocess.CalledProcessError(
+            returncode=1,
+            cmd=["adb", "shell", "sh", "-c", "test -d '/missing' && echo exists"],
+            stderr="",
+        )
+        error.stdout = ""
+        raise error
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    result = client.run_shell_command("test -d '/missing' && echo exists", allow_failure=True)
+
+    assert result.stdout == ""
+    assert result.stderr == ""
+    assert result.returncode == 1
+
+
+def test_run_shell_command_quotes_remote_command_as_single_argument(monkeypatch):
+    client = ADBClient()
+    captured = {}
+
+    def fake_run(args, **_kwargs):
+        captured["args"] = args
+        return _completed_process(args, stdout="Pixel 8\n")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    result = client.run_shell_command("getprop ro.product.model")
+
+    assert result.stdout == "Pixel 8"
+    assert captured["args"] == [
+        "adb",
+        "shell",
+        "sh -c 'getprop ro.product.model'",
+    ]
+
+
+def test_collect_bugreport_disables_command_timeout(monkeypatch, tmp_path):
+    client = ADBClient(timeout_seconds=60.0)
+    captured = {}
+
+    def fake_run(args, **kwargs):
+        captured["args"] = args
+        captured["timeout"] = kwargs["timeout"]
+        return _completed_process(args)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    client.collect_bugreport(tmp_path / "bugreport.zip", device="device-1234")
+
+    assert captured["args"] == [
+        "adb",
+        "-s",
+        "device-1234",
+        "bugreport",
+        str(tmp_path / "bugreport.zip"),
+    ]
+    assert captured["timeout"] is None
+
+
 class FakeProfileClient(ADBClient):
-    def run_shell_command(self, command, device=None):
+    def run_shell_command(self, command, device=None, allow_failure=False):
         responses = {
             "getprop ro.product.model": "Pixel 8",
             "getprop ro.product.manufacturer": "Google",

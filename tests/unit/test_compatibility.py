@@ -1,6 +1,7 @@
 """Unit tests for device compatibility detection."""
 
-from adb_bug_report_generator.compatibility import detect_device_profile
+from adb_bug_report_generator.adb import ADBCommandResult
+from adb_bug_report_generator.compatibility import detect_accessible_paths, detect_device_profile
 from tests import _bootstrap  # noqa: F401
 
 
@@ -45,3 +46,30 @@ def test_detect_device_profile_collects_capabilities():
     assert profile.accessible_paths == ("/sdcard/Android/data/ai.pdw.gcs/files/PDW_GCS",)
     assert profile.available_commands["getprop"] is True
     assert profile.available_commands["bugreport"] is False
+
+
+class ProbeFriendlyClient:
+    def run_shell_command(self, command, device=None, allow_failure=False):
+        responses = {
+            (
+                "test -d '/sdcard/Android/data/org.mavlink.qgroundcontrol/files/PDW_GCS' "
+                "&& echo exists"
+            ): ("", 1),
+            "test -d '/sdcard/Android/data/ai.pdw.gcs/files/PDW_GCS' && echo exists": (
+                "exists",
+                0,
+            ),
+        }
+        stdout, returncode = responses.get(command, ("", 1))
+        return ADBCommandResult(
+            command=("adb", "shell", "sh", "-c", command),
+            stdout=stdout,
+            stderr="",
+            returncode=returncode,
+        )
+
+
+def test_detect_accessible_paths_tolerates_missing_directories():
+    paths = detect_accessible_paths(ProbeFriendlyClient(), "device-1234")
+
+    assert paths == ["/sdcard/Android/data/ai.pdw.gcs/files/PDW_GCS"]

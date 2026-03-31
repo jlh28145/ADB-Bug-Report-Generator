@@ -68,7 +68,10 @@ def _noop(*_args, **_kwargs):
 def _shell_result(client, command, device):
     """Return shell output text from either the new or legacy client surface."""
     if hasattr(client, "run_shell_command"):
-        return client.run_shell_command(command, device=device).stdout
+        try:
+            return client.run_shell_command(command, device=device, allow_failure=True).stdout
+        except TypeError:
+            return client.run_shell_command(command, device=device).stdout
     return client.shell_text(command, device=device)
 
 
