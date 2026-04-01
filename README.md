@@ -1,355 +1,261 @@
 # ADB Bug Report Generator
 
 ## Overview
+
 ADB Bug Report Generator is a CLI-driven Android diagnostics utility for collecting troubleshooting artifacts from connected devices with ADB and packaging them into a predictable archive.
 
 It is built for repeatable debugging workflows where the goal is not just "grab some logs," but:
-- detect what kind of device is connected
-- collect the artifacts that make sense for that device
-- explain what was skipped, failed, or degraded
-- preserve metadata so the run is reviewable later
 
-## Features
-- CLI-driven collection flow with interactive or automation-friendly usage
-- connected-device discovery with explicit device targeting
-- startup device profiling for model, manufacturer, Android version, SDK level, emulator state, root availability, accessible paths, and available shell commands
-- compatibility-aware collection decisions with explicit skip reasons
-- standard diagnostics including logcat, device info, storage, network, battery, activity/event state, and optional package diagnostics
-- optional Android-generated `adb bugreport` collection
-- structured output with `metadata.json` and `run_summary.txt`
-- coverage-backed test pyramid with unit, integration, and opt-in emulator smoke coverage
-- GitHub Actions quality gates for lint, tests, coverage, build, import validation, and emulator smoke execution
+* detect what kind of device is connected
+* collect the artifacts that make sense for that device
+* explain what was skipped, failed, or degraded
+* preserve metadata so the run is reviewable later
 
-## Use Case
-This tool is useful when a team needs a repeatable Android diagnostics bundle instead of an ad hoc checklist.
+---
 
-Examples:
-- QA or support needs a standard package for investigating a field issue
-- an engineer wants non-interactive collection in a scripted workflow
-- emulator and physical-device troubleshooting need to share one CLI surface
-- a repo wants to demonstrate practical ADB automation with compatibility and failure handling built in
+## Why This Repo Matters
 
-## Prerequisites and Setup
-1. Install Python 3.10 or newer.
-2. Install Android Platform Tools and ensure `adb` is on your `PATH`.
-3. Enable Developer Options and USB debugging on the target device or start an Android emulator.
-4. Verify connectivity:
+This project demonstrates practical system-level QA automation for Android-based workflows.
 
-```bash
-adb devices
-```
+It is not just a wrapper around `adb`. It shows how to build a diagnostics tool that:
 
-Create and activate a virtual environment:
+* profiles a target device before collection
+* adapts to compatibility constraints instead of failing blindly
+* records skipped, failed, and degraded steps explicitly
+* produces reviewable output with structured metadata
+* enforces quality through linting, tests, coverage, packaging, and CI
 
-```bash
+For reviewers, this repo demonstrates:
+
+* Python automation design
+* CLI workflow design
+* Android / ADB-based diagnostics
+* compatibility-aware system testing
+* failure handling and degraded-mode behavior
+* CI/CD and test strategy discipline
+
+---
+
+## Key Capabilities
+
+* explicit connected-device discovery and targeting
+* startup device profiling (Android version, SDK, emulator state, root availability, shell support)
+* compatibility-aware collection with explicit skip and degradation reporting
+* diagnostics capture (logcat, device info, storage, network, battery, activity/event state, optional package data)
+* structured output with `metadata.json`, `run_summary.txt`, and timestamped archive packaging
+* quality enforcement through linting, testing, coverage, packaging checks, and GitHub Actions
+
+---
+
+## Quick Start
+
+Use `adb devices` to find your target device serial.
+
 python3 -m venv .venv
 source .venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
 .venv/bin/pip install -r requirements.txt
-```
 
-Run the compatibility wrapper:
-
-```bash
-python3 generate_bug_report.py --help
-```
-
-Or run the packaged module entry point:
-
-```bash
 PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator --help
-```
 
-Contributor-focused setup, emulator onboarding, and troubleshooting live in [CONTRIBUTING.md](/home/vhinson/dev/ADB-Bug-Report-Generator/CONTRIBUTING.md).
+Example run:
+
+PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
+--device DEVICE_SERIAL \
+--incident-summary "Field issue review" \
+--non-interactive \
+--output-dir output/basic-review
+
+---
 
 ## CLI Examples
+
 Basic physical-device run:
 
-```bash
 PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
-  --device 2BKHA09608 \
-  --incident-summary "Field issue reproduction review" \
-  --non-interactive \
-  --output-dir output/basic-review
-```
+--device DEVICE_SERIAL \
+--incident-summary "Field issue reproduction review" \
+--non-interactive \
+--output-dir output/basic-review
 
 Full review with package diagnostics and Android-generated bugreport:
 
-```bash
 PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
-  --device 2BKHA09608 \
-  --incident-summary "Full manual validation review" \
-  --non-interactive \
-  --include-bugreport \
-  --package ai.pdw.gcs \
-  --output-dir output/full-review
-```
+--device DEVICE_SERIAL \
+--incident-summary "Full manual validation review" \
+--non-interactive \
+--include-bugreport \
+--package your.package.name \
+--output-dir output/full-review
 
 Emulator-targeted run:
 
-```bash
 PYTHONPATH=src .venv/bin/python -m adb_bug_report_generator \
-  --device emulator-5554 \
-  --allow-emulator \
-  --incident-summary "Emulator smoke validation" \
-  --non-interactive \
-  --output-dir output/emulator-review
-```
+--device emulator-5554 \
+--allow-emulator \
+--incident-summary "Emulator smoke validation" \
+--non-interactive \
+--output-dir output/emulator-review
 
-Key CLI flags:
-- `--device`: target a specific connected device
-- `--non-interactive`: disable prompts for scripted runs
-- `--include-bugreport`: include Android-generated `adb bugreport`
-- `--package`: collect diagnostics for a specific package
-- `--allow-emulator`: permit collection on emulator targets
-- `--require-root`: fail if root is required but unavailable
-- `--include-protected-paths`: explicitly allow root-enhanced protected-path diagnostics
-- `--simplified`: skip broad directory pulls
-- `--fail-on-partial`: return a non-zero exit code when any collection step fails
-- `--compat-mode`: choose `auto`, `strict`, or `permissive`
-- `--timeout`: set the normal ADB command timeout in seconds
 
-## Output Structure
-Each run produces a timestamped archive:
+---
 
-```text
+## Example Output
+
 output/
-  QA_bug_report_<timestamp>.zip
-```
-
-Typical archive contents:
-
-```text
+QA_bug_report_20260401_101530.zip
 run_summary.txt
 metadata.json
 bugreport.zip
 Device Info/
-  logcat.txt
-  device_info.txt
-  cpu_usage.txt
-  network_config.txt
-  network_stats.txt
-  storage_info.txt
-  battery_info.txt
-  event_logs.txt
-  package_diagnostics.txt
-QGC Logs/
-Navsuite Logs/
-Screen Recordings/
-Pictures/
-Movies/
-```
+logcat.txt
+device_info.txt
+battery_info.txt
+network_config.txt
 
-`metadata.json` records:
-- timestamp and incident summary
-- selected device
-- detected device profile
-- selected CLI options
-- artifact-level status for collected, skipped, or failed steps
+The archive includes both collected artifacts and structured metadata so each run is reviewable, including skipped or degraded steps.
 
-This makes the archive reviewable even when a device only supports a subset of the collectors.
+---
 
-## Testing
-The repo follows a pragmatic test pyramid:
-- unit tests in `tests/unit/` for collector logic, filesystem behavior, and compatibility decisions
-- integration tests in `tests/integration/` for CLI orchestration and fake ADB interactions
-- opt-in end-to-end coverage in `tests/e2e/` for emulator-backed smoke validation and real-device checklists
+## Test Strategy
 
-Common local commands:
+This repo follows a pragmatic test pyramid:
 
-```bash
-make test
-make lint
-make validate
-```
+* Unit tests: collector logic, compatibility decisions, filesystem behavior
+* Integration tests: CLI orchestration and ADB interaction simulation
+* End-to-end (opt-in): emulator-backed smoke validation
+* Manual validation: real-device verification
 
-Direct equivalents:
+GitHub Actions enforces:
 
-```bash
-.venv/bin/pytest
-.venv/bin/ruff check .
-.venv/bin/black --check src tests generate_bug_report.py
-.venv/bin/pytest --cov=adb_bug_report_generator --cov-report=term-missing --cov-report=xml
-.venv/bin/mypy src/adb_bug_report_generator
-```
+* Ruff linting
+* Black formatting checks
+* pytest execution
+* coverage threshold (70%+)
+* package build validation
+* import validation
+* pre-commit hooks
 
-Supporting docs:
-- [CONTRIBUTING.md](/home/vhinson/dev/ADB-Bug-Report-Generator/CONTRIBUTING.md)
-- [examples/README.md](/home/vhinson/dev/ADB-Bug-Report-Generator/examples/README.md)
-- [tests/integration/README.md](/home/vhinson/dev/ADB-Bug-Report-Generator/tests/integration/README.md)
-- [tests/e2e/README.md](/home/vhinson/dev/ADB-Bug-Report-Generator/tests/e2e/README.md)
-- [tests/e2e/manual_validation_checklist.md](/home/vhinson/dev/ADB-Bug-Report-Generator/tests/e2e/manual_validation_checklist.md)
+---
 
-## Emulator Testing
-The repo includes an opt-in emulator smoke test in [test_emulator_smoke.py](/home/vhinson/dev/ADB-Bug-Report-Generator/tests/e2e/test_emulator_smoke.py).
+## Validation Coverage
 
-Run it locally with:
+### Emulator Testing
 
-```bash
+Opt-in emulator smoke test:
+
 ADB_RUN_EMULATOR_SMOKE=1 \
 ADB_EMULATOR_SERIAL=emulator-5554 \
 .venv/bin/pytest tests/e2e/test_emulator_smoke.py -q
-```
 
-Recommended local emulator baseline:
-- Android Studio Device Manager
-- `x86_64` image
-- API level 30 or newer
-- emulator fully booted before the smoke test starts
+Validates:
 
-Useful readiness check:
+* device targeting
+* device profiling
+* log collection
+* packaging
 
-```bash
-adb devices
-adb -s emulator-5554 shell getprop sys.boot_completed
-```
+---
 
-The smoke test validates:
-- explicit device targeting
-- device profile detection
-- logcat capture
-- device-info capture
-- final zip packaging
+### Real Device Support
 
-The GitHub Actions workflow also runs the emulator smoke job automatically on `push` to `main`, and it can be launched manually with `workflow_dispatch`.
+Validated on:
 
-## Real Device Support
-Real-device validation has been exercised on non-root hardware and documented in [manual_validation_checklist.md](/home/vhinson/dev/ADB-Bug-Report-Generator/tests/e2e/manual_validation_checklist.md).
+* PANASONIC FZ-S1 (Android 11 / SDK 30)
+* NUU S6304L (Android 13 / SDK 33)
 
-Observed physical-device validation summary:
-- `PANASONIC FZ-S1` on Android `11` / SDK `30`
-  - successful non-root run
-  - populated app/media directories
-  - package diagnostics succeeded for `ai.pdw.gcs`
-  - full review succeeded with `bugreport.zip`
-- `NUU S6304L` on Android `13` / SDK `33`
-  - successful non-root run
-  - diagnostics and `bugreport.zip` collected successfully
-  - no matching app/media directories were present, so the archive was diagnostics-focused
+Supports:
 
-What that means in practice:
-- the tool supports both content-rich and diagnostics-only device states
-- physical-device output can vary substantially based on what is actually present on-device
-- rooted-device enhanced validation is still intentionally deferred
+* non-root diagnostics
+* package-level diagnostics
+* variability across device states
 
-Sanitized demo material is available in [examples/README.md](/home/vhinson/dev/ADB-Bug-Report-Generator/examples/README.md).
-
-## Compatibility and Fallback Strategy
-The tool builds a device profile before collection starts and uses that profile to decide what to collect and what to skip.
-
-Current compatibility behavior includes:
-- detecting emulator vs physical-device targets
-- detecting emulator boot-complete state
-- recording root availability
-- detecting accessible application directories
-- recording available shell commands such as `getprop`, `dumpsys`, `logcat`, `bugreport`, `ifconfig`, `ip`, and `top`
-- skipping unsupported collectors with explicit reasons
-- preferring standard non-root diagnostics first
-- requiring explicit opt-in before protected-path diagnostics are attempted
-- falling back from `getprop` to `dumpsys` for device info when needed
-- falling back from `ifconfig` to `ip addr` for network configuration when appropriate
-- applying older-shell fallbacks for selected collectors on legacy Android SDK levels
-
-Compatibility modes:
-- `auto`: default guardrails and normal degraded behavior
-- `strict`: fail early if requested collectors are clearly unsupported
-- `permissive`: prefer degraded collection over early rejection
+---
 
 ## Architecture
-The project is organized around a few focused modules:
-- [cli.py](/home/vhinson/dev/ADB-Bug-Report-Generator/src/adb_bug_report_generator/cli.py): argument parsing, orchestration, operator-facing flow
-- [adb.py](/home/vhinson/dev/ADB-Bug-Report-Generator/src/adb_bug_report_generator/adb.py): ADB abstraction, structured command results, timeout behavior, retry handling, and exception mapping
-- [collector.py](/home/vhinson/dev/ADB-Bug-Report-Generator/src/adb_bug_report_generator/collector.py): collection workflow, artifact handling, and compatibility-aware collector execution
-- [compatibility.py](/home/vhinson/dev/ADB-Bug-Report-Generator/src/adb_bug_report_generator/compatibility.py): device profiling and compatibility decisions
-- [filesystem.py](/home/vhinson/dev/ADB-Bug-Report-Generator/src/adb_bug_report_generator/filesystem.py): output creation, metadata writing, sanitization, and archive packaging
+
+Core modules:
+
+* cli.py: CLI parsing and orchestration
+* adb.py: ADB abstraction, retries, timeouts, command handling
+* collector.py: artifact collection workflow
+* compatibility.py: device profiling and decision logic
+* filesystem.py: output generation and archive packaging
 
 High-level flow:
-1. Parse CLI arguments and validate operator input.
-2. Detect and select a device.
-3. Build a device profile.
-4. Run compatible collectors and record artifact-level status.
-5. Write metadata and run summary.
-6. Package everything into a final zip archive.
+
+1. Parse CLI arguments
+2. Detect and select device
+3. Build device profile
+4. Execute compatible collectors
+5. Record results and metadata
+6. Package final archive
+
+---
+
+## Compatibility and Fallback Strategy
+
+The tool adapts to device constraints instead of failing blindly.
+
+Includes:
+
+* emulator vs physical detection
+* root availability detection
+* command availability checks (getprop, dumpsys, logcat, etc.)
+* fallback strategies (ifconfig → ip addr)
+* explicit skip reasons for unsupported collectors
+
+Modes:
+
+* auto: default behavior
+* strict: fail early
+* permissive: prefer degraded execution
+
+---
 
 ## Failure Handling
-The CLI is designed to be explicit about degraded or failed collection instead of hiding it.
 
-Current operator-facing failure handling includes:
-- missing `adb`
-- no connected devices
-- unauthorized devices
-- offline devices
-- invalid multi-device selection
-- non-interactive mode without enough information to proceed
-- emulator boot incomplete
-- emulator target rejected unless `--allow-emulator` is set
-- root-required runs on non-rooted devices
-- strict compatibility rejection for unsupported requested collectors
-- partial-failure exit behavior when `--fail-on-partial` is enabled
+Explicit failure handling includes:
 
-Current exit codes:
-- `0`: successful run
-- `2`: partial collection failure with `--fail-on-partial`
-- `3`: no connected device available
-- `4`: `adb` executable unavailable
-- `5`: ADB command timeout
-- `6`: connected device blocked by authorization or offline state
-- `7`: emulator detected before Android boot completed
-- `8`: invalid operator input or compatibility constraint rejection
+* missing adb
+* no connected devices
+* unauthorized/offline devices
+* invalid selections
+* emulator boot incomplete
+* root-required constraints
+* partial failure detection
 
-## CI Quality Gates
-GitHub Actions in `.github/workflows/ci.yml` enforces the project’s basic quality gates.
+Exit codes:
 
-The `quality` job validates:
-- Ruff linting
-- Black formatting checks
-- pytest execution
-- coverage reporting with a minimum threshold of 70%
-- package build success
-- packaged import validation
-- pre-commit hook execution
+* 0: success
+* 2: partial failure (--fail-on-partial)
+* 3–8: specific failure conditions
 
-The `emulator-smoke` job:
-- runs automatically on `push` to `main`
-- can be triggered manually from any branch with `workflow_dispatch`
-- exercises the emulator-backed smoke path in CI
-
-Useful local shortcuts:
-
-```bash
-make run
-make test
-make lint
-make format
-make smoke
-make validate
-```
+---
 
 ## Sensitive Data
-Some collectors can capture sensitive troubleshooting data, including application state, device properties, and log content.
 
-Current safeguards:
-- bugreport collection requires explicit `--include-bugreport`
-- protected-path diagnostics require explicit `--include-protected-paths`
-- package diagnostics require explicit `--package`
-- metadata text is sanitized before writing `metadata.json`
-- device-provided filenames are sanitized before being written locally
+Generated artifacts may contain:
 
-Recommended handling:
-- treat generated archives as sensitive by default
-- avoid sharing raw bugreports or log archives publicly without review
-- prefer emulator validation or reduced collector scope when full artifact collection is unnecessary
+* device state
+* logs
+* application data
+
+Safeguards:
+
+* opt-in bugreport collection
+* opt-in protected-path diagnostics
+* metadata sanitization
+* filename sanitization
+
+Treat outputs as sensitive.
+
+---
 
 ## Current Limitations and Tradeoffs
-This project is intentionally focused on practical Android diagnostics collection, not full device-lab automation.
 
-Current limitations:
-- rooted-device validation is still pending
-- physical-device results vary based on what files and app data actually exist on-device
-- emulator smoke coverage is intentionally small and opt-in
-- some collectors depend on device-specific command availability and shell behavior
-- the tool is not intended to replace broader test automation, performance benchmarking, or hardware certification workflows
+* rooted-device validation not yet implemented
+* device outputs vary based on available data
+* emulator coverage is intentionally minimal
+* some collectors depend on device-specific shell behavior
+
+This project focuses on practical diagnostics automation, not full device lab orchestration.
